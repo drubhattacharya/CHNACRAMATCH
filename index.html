@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CHNA–CRA Navigation Dashboard (Functional Build)</title>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --blue:#1f7fd6; --green:#18a76f; --ink:#0b1f33; --muted:#2f4556;
+      --border:rgba(11,31,51,.16); --bg1:#e7f3ff; --bg2:#e7fbf2; --card:#ffffff;
+      --warn:#d78b00; --bad:#d93b3b;
+      --shadow:0 12px 28px rgba(11,31,51,.06);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1100px 520px at 15% 10%, var(--bg1), rgba(255,255,255,0)),
+        radial-gradient(1100px 520px at 85% 20%, var(--bg2), rgba(255,255,255,0)),
+        linear-gradient(180deg, #ffffff, #f7fbff);
+      color:var(--ink);
+      font-size:16px;
+      line-height:1.45;
+    }
+    header{
+      padding:14px 18px 12px 18px;
+      border-bottom:1px solid var(--border);
+      background:rgba(255,255,255,.88);
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(8px);
+    }
+    .wrap{max-width:1320px;margin:0 auto;padding:14px 18px 40px;}
+    h1{margin:0;font-size:20px;}
+    .sub{margin-top:4px;color:var(--muted);font-size:13px;}
+    .grid{display:grid; gap:12px;}
+    .grid-2{grid-template-columns: 420px 1fr;}
+    @media (max-width: 980px){ .grid-2{grid-template-columns:1fr;} }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .btnbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; align-items:center;}
+    button{
+      border:1px solid var(--border); background:#fff; border-radius:12px;
+      padding:8px 12px; font-weight:900; cursor:pointer;
+    }
+    button.primary{border-color:rgba(31,127,214,.35); background:rgba(31,127,214,.08);}
+    button.secondary{border-color:rgba(24,167,111,.35); background:rgba(24,167,111,.08);}
+    button.danger{border-color:rgba(217,59,59,.35); background:rgba(217,59,59,.08);}
+    .tabs{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center;}
+    .tabbtn{
+      border:1px solid var(--border); background:#fff; border-radius:999px;
+      padding:8px 12px; font-weight:900; cursor:pointer;
+    }
+    .tabbtn.active{border-color:rgba(31,127,214,.35); background:rgba(31,127,214,.08);}
+    .pill{
+      display:inline-block; padding:2px 10px; border-radius:999px;
+      background:rgba(31,127,214,.10); border:1px solid rgba(31,127,214,.22);
+      font-size:12px; font-weight:800;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border); background:#fff;
+      font-size:12px; font-weight:900; color:var(--ink);
+    }
+    .small{font-size:12px;color:var(--muted);}
+    .mono{font-family:var(--mono);}
+    .kpis{display:grid; grid-template-columns: repeat(4,1fr); gap:10px;}
+    @media (max-width: 980px){ .kpis{grid-template-columns:1fr;} }
+    .kpi{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 12px;
+      background:#fff;
+    }
+    .kpi .label{font-size:12px;color:var(--muted);font-weight:800;}
+    .kpi .value{font-size:22px;font-weight:900;margin-top:2px;}
+    .kpi .hint{font-size:12px;color:var(--muted); margin-top:4px; line-height:1.35;}
+    table{width:100%; border-collapse:collapse; font-size:13px;}
+    th,td{border:1px solid var(--border); padding:8px; vertical-align:top;}
+    th{background:rgba(31,127,214,.08); text-align:left;}
+    .callout{
+      border:1px dashed rgba(11,31,51,.25);
+      border-radius:14px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.7);
+    }
+    .okbar{
+      display:none; border:1px solid rgba(24,167,111,.35); background:rgba(24,167,111,.08);
+      border-radius:14px; padding:10px 12px; margin-top:12px;
+    }
+    .errbar{
+      display:none; border:1px solid rgba(217,59,59,.35); background:rgba(217,59,59,.08);
+      border-radius:14px; padding:10px 12px; margin-top:12px;
+    }
+    .view{display:none;}
+    .view.active{display:block;}
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+    .field{flex:1 1 320px; border:1px solid var(--border); border-radius:12px; padding:10px; background:#fff;}
+    .field label{display:flex; justify-content:space-between; gap:10px; font-weight:900; font-size:13px;}
+    input, select, textarea{
+      width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:12px;
+      font-size:14px; color:var(--ink); background:#fff;
+    }
+    textarea{min-height:88px; resize:vertical;}
+    .codebox{
+      font-family:var(--mono);
+      font-size:12px;
+      white-space:pre-wrap;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      background:#fff;
+      color:var(--ink);
+    }
+    .split{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
+    @media (max-width:980px){ .split{grid-template-columns:1fr;} }
+    .gate{margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    .dot{width:10px;height:10px;border-radius:999px;background: var(--warn);border:1px solid rgba(0,0,0,.08);}
+    .dot.good{background: var(--green);}
+    .dot.bad{background: var(--bad);}
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap" style="padding:0 18px;">
+    <h1>CHNA–CRA Navigation Dashboard</h1>
+    <div class="sub">Functional pitch build: Tier 1 Assessment → Tier 2 CRA Rule Engine → Tier 3 ROI (Excel parity)</div>
+
+    <div class="tabs" aria-label="Navigation tabs">
+      <button class="tabbtn active" id="tab_overview" data-view="overview" onclick="setView('overview')">Overview</button>
+      <button class="tabbtn" id="tab_t1" data-view="t1" onclick="setView('t1')">Tier 1 — Assessment</button>
+      <button class="tabbtn" id="tab_t2" data-view="t2" onclick="setView('t2')">Tier 2 — CRA Rule Engine</button>
+      <button class="tabbtn" id="tab_t3" data-view="t3" onclick="setView('t3')">Tier 3 — ROI</button>
+      <button class="tabbtn" id="tab_t4" data-view="t4" onclick="setView('t4')">Tier 4 — Implementation</button>
+      <button class="tabbtn" id="tab_t5" data-view="t5" onclick="setView('t5')">Tier 5 — Outcomes</button>
+      <button class="tabbtn" id="tab_t6" data-view="t6" onclick="setView('t6')">Tier 6 — Evaluation</button>
+      <button class="tabbtn" id="tab_drafts" data-view="drafts" onclick="setView('drafts')">Artifacts</button>
+
+      <div class="gate">
+        <span class="chip"><span id="gateDot" class="dot bad"></span> <span id="gateText">Run Tier 1 to unlock Tier 2/3</span></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="errbar" class="errbar"></div>
+  <div id="okbar" class="okbar"></div>
+
+  <div class="grid grid-2">
+    <!-- LEFT PANEL -->
+    <div class="card">
+      <div class="btnbar">
+        <button class="primary" id="btn_process" onclick="processFiles()">Process Files</button>
+        <button class="secondary" id="btn_demo">Load Demo</button>
+        <button id="btn_export">Export JSON</button>
+        <button class="danger" id="btn_reset">Reset</button>
+      </div>
+
+      <div class="field">
+        <label><span>Upload PDFs (CHNA / CHIP / Schedule H)</span><span class="pill">PDF/TXT</span></label>
+        <input id="file_input" type="file" multiple accept=".pdf,.txt"/>
+        <div class="small" style="margin-top:8px;">PDF parsing runs locally in your browser (no server). Scanned PDFs may yield limited text.</div>
+        <div id="proc_log" class="codebox" style="margin-top:10px; min-height:140px;">(processing log)</div>
+      </div>
+
+      <div class="field" style="margin-top:10px;">
+        <label><span>Add CHNA Web Links (StoryMaps etc.)</span><span class="pill">Multi‑URL</span></label>
+        <div class="row" style="margin-top:0;">
+          <input id="url_input" type="text" placeholder="Paste a CHNA URL and click Add"/>
+          <button id="btn_add_url" class="secondary" type="button">Add</button>
+        </div>
+        <div id="url_list" class="codebox" style="margin-top:8px; min-height:84px;">(no URLs added)</div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <div class="chip">Docs: <span class="mono" id="docs_count">0</span></div>
+        <div class="chip">Evidence: <span class="mono" id="ev_count">0</span></div>
+        <div class="chip">Tier 1 IRI: <span class="mono" id="iri_small">—</span></div>
+      </div>
+
+      <div class="callout" style="margin-top:12px;">
+        <div style="font-weight:900;">What to do if “nothing happens”</div>
+        <div class="small" style="margin-top:6px;">
+          Open browser Console (F12) and look for errors. This build also shows parse progress above.
+          If a PDF is scanned, the log will show it parsed but Tier 1 auto-prefill may be limited.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="card">
+
+      <!-- OVERVIEW -->
+      <section id="view_overview" class="view active">
+        <div class="callout">
+          <div style="font-weight:900;">Platform Overview</div>
+          <div class="small" style="margin-top:6px;">
+            Tier 1 scores CHNA accountability and CHNA–CHIP alignment; Tier 2 translates needs into CRA‑exam defensible structure; Tier 3 validates financial discipline with an Excel‑parity ROI.
+          </div>
+        </div>
+        <div class="card" style="box-shadow:none; margin-top:12px;">
+          <div style="font-weight:900; margin-bottom:6px;">Tiered Question Framework</div>
+          <div style="overflow:auto;">
+            <table>
+              <tr><th>Tier</th><th>Core question</th><th>Outputs</th></tr>
+              <tr><td><b>Tier 1</b></td><td>Is the CHNA accountable and investment‑ready (incl. CHNA–CHIP alignment)?</td><td>Scores, gaps, evidence index</td></tr>
+              <tr><td><b>Tier 2</b></td><td>Is the activity CRA‑eligible and exam‑defensible?</td><td>Rule engine scores + flags + narrative</td></tr>
+              <tr><td><b>Tier 3</b></td><td>Is it financially disciplined and what is break‑even?</td><td>ROI + program cost + CRA outputs</td></tr>
+              <tr><td><b>Tier 4</b></td><td>How do we operationalize the intervention in 30–90 days with clear roles, workflows, and an audit trail?</td><td>Implementation plan, roles & responsibilities, data capture points</td></tr>
+<tr><td><b>Tier 5</b></td><td>What will we report monthly/quarterly to leadership and CRA examiners to demonstrate reach, scope, outputs, and financial performance?</td><td>Outcomes reporting template, CRA impact package, variance tracking</td></tr>
+<tr><td><b>Tier 6</b></td><td>How will we measure long-term impact, compare against baseline, stratify results, and close the loop for the next CHNA cycle?</td><td>Evaluation plan, baseline metrics, stratification, governance cadence</td></tr>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIER 1 -->
+      <section id="view_t1" class="view">
+        <div class="kpis">
+          <div class="kpi"><div class="label">Structural score</div><div class="value" id="kpi_struct">—</div><div class="hint">IRS documentation completeness.</div></div>
+          <div class="kpi"><div class="label">Community input</div><div class="value" id="kpi_input">—</div><div class="hint">Written comment compliance scoring.</div></div>
+          <div class="kpi"><div class="label">CHNA–CHIP alignment</div><div class="value" id="kpi_align">—</div><div class="hint">Priority continuity + operationalization.</div></div>
+          <div class="kpi"><div class="label">Investment readiness index</div><div class="value" id="kpi_iri">—</div><div class="hint">Weighted 40/20/40.</div></div>
+        </div>
+
+        <div class="grid" style="margin-top:12px;">
+          <div class="card" style="box-shadow:none;">
+            <div style="font-weight:900; margin-bottom:6px;">Accountability rubric (0–2)</div>
+            <div class="small" style="margin-bottom:10px;">Auto-prefill scans PDF text for keywords; you can override.</div>
+            <div style="overflow:auto;"><table id="tbl_rubric"></table></div>
+            <div class="row">
+              <button class="secondary" type="button" onclick="prefillRubric()">Auto-prefill</button>
+              <button type="button" onclick="scoreAll()">Recalculate</button>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none;">
+            <div style="font-weight:900; margin-bottom:6px;">CHNA–CHIP alignment</div>
+            <div class="row" style="margin-top:0;">
+              <div class="field"><label>CHNA document</label><select id="sel_chna"></select></div>
+              <div class="field"><label>CHIP/Plan document</label><select id="sel_chip"></select></div>
+            </div>
+            <div class="split" style="margin-top:10px;">
+              <div><div style="font-weight:900; margin-bottom:6px;">Detected priorities</div><div id="prio_box" class="codebox" style="min-height:200px;">Process files to extract.</div></div>
+              <div><div style="font-weight:900; margin-bottom:6px;">Alignment rubric</div><div style="overflow:auto;"><table id="tbl_align"></table></div>
+                <div class="row">
+                  <button class="secondary" type="button" onclick="prefillAlignment()">Auto-prefill alignment</button>
+                  <button type="button" onclick="scoreAll()">Recalculate</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none;">
+            <div style="font-weight:900; margin-bottom:6px;">Gaps & recommendations</div>
+            <div id="gap_box" class="codebox" style="min-height:220px;">Run Tier 1 to populate.</div>
+          </div>
+
+          <div class="card" style="box-shadow:none;">
+            <div style="font-weight:900; margin-bottom:6px;">Evidence snippets</div>
+            <div style="overflow:auto;"><table id="tbl_evidence"></table></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIER 2 -->
+      <section id="view_t2" class="view">
+        <div class="callout">
+          <div style="font-weight:900;">Tier 2 — CRA Rule Engine (embedded)</div>
+          <div class="small" style="margin-top:6px;">No CRA document uploads required. Uses exam concepts: primary purpose, LMI, AA, responsiveness, documentation readiness.</div>
+        </div>
+
+        <div class="card" style="box-shadow:none; margin-top:12px;">
+          <div class="kpis">
+            <div class="kpi"><div class="label">Eligibility</div><div class="value" id="cra_elig">—</div><div class="hint">Primary purpose + LMI + AA.</div></div>
+            <div class="kpi"><div class="label">Defensibility</div><div class="value" id="cra_def">—</div><div class="hint">Responsiveness + complexity + leadership.</div></div>
+            <div class="kpi"><div class="label">Docs readiness</div><div class="value" id="cra_docs">—</div><div class="hint">Checklist completeness.</div></div>
+            <div class="kpi"><div class="label">Total Tier 2</div><div class="value" id="cra_total">—</div><div class="hint">Unlock Tier 3 when ≥ 60.</div></div>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <div class="field"><label>Activity type</label>
+              <select id="cra_activity">
+                <option value="nmt" selected>NEMT / Transportation‑to‑care</option>
+                <option value="food">Food access support</option>
+                <option value="care">Care navigation</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field"><label>Structure</label>
+              <select id="cra_structure">
+                <option value="grant" selected>Grant/donation</option>
+                <option value="service">Service (staff time)</option>
+                <option value="investment">Investment</option>
+                <option value="loan">CD loan</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>AA attribution (%) <span class="mono" id="cra_aa_read">100%</span></label>
+              <input id="cra_aa" type="range" min="0" max="100" value="100"/>
+            </div>
+            <div class="field">
+              <label>LMI targeting (%) <span class="mono" id="cra_lmi_read">90%</span></label>
+              <input id="cra_lmi" type="range" min="0" max="100" value="90"/>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field"><label>Primary purpose clarity</label>
+              <select id="cra_primary">
+                <option value="2" selected>Clear</option>
+                <option value="1">Partial</option>
+                <option value="0">Unclear</option>
+              </select>
+            </div>
+            <div class="field"><label>Responsiveness</label>
+              <select id="cra_resp">
+                <option value="2" selected>High</option>
+                <option value="1">Moderate</option>
+                <option value="0">Low</option>
+              </select>
+            </div>
+            <div class="field"><label>Complexity</label>
+              <select id="cra_complex">
+                <option value="2">High</option>
+                <option value="1" selected>Moderate</option>
+                <option value="0">Low</option>
+              </select>
+            </div>
+            <div class="field"><label>Leadership</label>
+              <select id="cra_lead">
+                <option value="2">Leader</option>
+                <option value="1" selected>Participant</option>
+                <option value="0">Minimal</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="callout" style="margin-top:10px;">
+            <div style="font-weight:900;">Documentation checklist</div>
+            <div class="row" style="margin-top:10px;">
+              <div class="field"><label><input type="checkbox" class="cra_doc" checked/> CHNA/CHIP excerpt(s)</label></div>
+              <div class="field"><label><input type="checkbox" class="cra_doc" checked/> LMI method</label></div>
+              <div class="field"><label><input type="checkbox" class="cra_doc" checked/> AA attribution method</label></div>
+              <div class="field"><label><input type="checkbox" class="cra_doc" checked/> Agreement/MOU</label></div>
+              <div class="field"><label><input type="checkbox" class="cra_doc"/> Invoices/payments</label></div>
+              <div class="field"><label><input type="checkbox" class="cra_doc"/> Service/unit logs</label></div>
+              <div class="field"><label><input type="checkbox" class="cra_doc"/> Monitoring cadence</label></div>
+              <div class="field"><label><input type="checkbox" class="cra_doc"/> Quarterly report</label></div>
+            </div>
+          </div>
+
+          <div class="btnbar" style="margin-top:12px;">
+            <button class="primary" type="button" onclick="runCRAEngine()">Calculate</button>
+            <button class="secondary" type="button" onclick="populateCRAFromTier1()">Use Tier 1 hints</button>
+          </div>
+
+          <div class="split" style="margin-top:12px;">
+            <div class="card" style="box-shadow:none;">
+              <div style="font-weight:900; margin-bottom:6px;">Flags & recommendations</div>
+              <div id="cra_flags" class="codebox" style="min-height:220px;">Run Tier 2 to populate.</div>
+            </div>
+            <div class="card" style="box-shadow:none;">
+              <div style="font-weight:900; margin-bottom:6px;">Exam‑style narrative starter</div>
+              <div id="cra_narr" class="codebox" style="min-height:220px;">Run Tier 2 to populate.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIER 3 -->
+      <section id="view_t3" class="view">
+        <div class="callout">
+          <div style="font-weight:900;">Tier 3 — ROI (Excel parity)</div>
+          <div class="small" style="margin-top:6px;">Uses the incremental margin logic from your Excel model. Rates accept 0.20 or 20.</div>
+        </div>
+
+        <div class="card" style="box-shadow:none; margin-top:12px;">
+          <div class="row">
+            <div class="field"><label>Annual visits</label><input id="a_visits" type="number" value="40000"/></div>
+            <div class="field"><label>No-show rate</label><input id="a_noshow" type="number" value="0.20" step="0.01"/></div>
+            <div class="field"><label>Transport share</label><input id="a_share" type="number" value="0.30" step="0.01"/></div>
+            <div class="field"><label>Net rev/visit ($)</label><input id="a_netrev" type="number" value="225"/></div>
+            <div class="field"><label>Marginal cost/visit ($)</label><input id="a_margc" type="number" value="90"/></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Mitigation rate</label><input id="b_mitig" type="number" value="0.50" step="0.01"/></div>
+            <div class="field"><label>Trip cost ($)</label><input id="b_trip" type="number" value="60"/></div>
+            <div class="field"><label>Overhead rate</label><input id="b_over" type="number" value="0.10" step="0.01"/></div>
+          </div>
+          <div class="btnbar">
+            <button class="primary" type="button" onclick="renderROI()">Run ROI</button>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><div class="label">Net benefit</div><div class="value" id="roi_net">—</div></div>
+            <div class="kpi"><div class="label">Program cost</div><div class="value" id="roi_cost">—</div></div>
+            <div class="kpi"><div class="label">ROI (x)</div><div class="value" id="roi_x">—</div></div>
+            <div class="kpi"><div class="label">Break-even trip cost max</div><div class="value" id="roi_be">—</div></div>
+          </div>
+          <div class="split" style="margin-top:12px;">
+            <div class="card" style="box-shadow:none;">
+              <canvas id="roi_chart" height="240"></canvas>
+            </div>
+            <div class="card" style="box-shadow:none;">
+              <div id="roi_audit" class="codebox" style="min-height:240px;">Run ROI to populate audit summary.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tier 4/5/6 placeholders -->
+      <section id="view_t4" class="view"><div class="callout"><div style="font-weight:900;">Tier 4 — Implementation (prototype)</div><div class="small" style="margin-top:6px;">Template placeholders for pitch.</div></div><div class="card" style="box-shadow:none; margin-top:12px;"><div class="codebox" style="min-height:220px;">(Prototype) Implementation plan templates.</div></div></section>
+      <section id="view_t5" class="view"><div class="callout"><div style="font-weight:900;">Tier 5 — Outcomes (prototype)</div><div class="small" style="margin-top:6px;">Template placeholders for pitch.</div></div><div class="card" style="box-shadow:none; margin-top:12px;"><div class="codebox" style="min-height:220px;">(Prototype) Quarterly report templates.</div></div></section>
+      <section id="view_t6" class="view"><div class="callout"><div style="font-weight:900;">Tier 6 — Evaluation (prototype)</div><div class="small" style="margin-top:6px;">Template placeholders for pitch.</div></div><div class="card" style="box-shadow:none; margin-top:12px;"><div class="codebox" style="min-height:220px;">(Prototype) Evaluation plan templates.</div></div></section>
+
+      <section id="view_drafts" class="view">
+        <div class="callout">
+          <div style="font-weight:900;">Artifacts Generator (application-ready)</div>
+          <div class="small" style="margin-top:6px;">
+            Drafts are generated locally from deterministic templates using Tier 1 findings, Tier 2 CRA rule-engine inputs, and Tier 3 ROI outputs.
+            No external AI calls are made inside this HTML.
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none; margin-top:12px;">
+          <div class="row">
+            <div class="field">
+              <label>Artifact type</label>
+              <select id="draft_type">
+                <option value="cra_memo">CRA Activity Justification Memo</option>
+                <option value="exam_narrative">Examiner‑Facing Narrative (PE language)</option>
+                <option value="crosswalk">CRA Eligibility Crosswalk Table</option>
+                <option value="term_sheet">Joint Partnership Term Sheet</option>
+                <option value="chna_brief">CHNA Implementation Alignment Brief</option>
+                <option value="monitor_plan">Monitoring & Evidence Plan</option>
+                <option value="pnl">Borrower P&L Statement (Hospital)</option>
+                <option value="proforma_3yr">Project Pro Forma Budget (3‑Year)</option>
+              </select>
+              <div class="small" style="margin-top:6px;">Run Tier 1 and (ideally) Tier 2–3 first so the drafts are populated with real values.</div>
+            </div>
+
+            <div class="field">
+              <label>Project name (optional)</label>
+              <input id="draft_project" type="text" placeholder="e.g., Transportation-to-Care Pilot — 12 months"/>
+            </div>
+
+            <div class="field">
+              <label>Implementing partner (optional)</label>
+              <input id="draft_partner" type="text" placeholder="e.g., County Transit / Nonprofit / Ride broker"/>
+            </div>
+
+            <div class="field">
+              <label>Funding structure notes (optional)</label>
+              <input id="draft_structure" type="text" placeholder="e.g., Bank grant to nonprofit + hospital service agreement"/>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Pro forma growth (%/yr)</label>
+              <input id="draft_growth" type="number" value="5" min="0" step="0.5"/>
+            </div>
+            <div class="field">
+              <label>Cost inflation (%/yr)</label>
+              <input id="draft_infl" type="number" value="3" min="0" step="0.5"/>
+            </div>
+          </div>
+
+          
+<div class="callout" style="margin-top:12px;">
+  <div style="font-weight:900;">Financial statement assumptions (optional)</div>
+  <div class="small" style="margin-top:6px;">These expand the incremental P&L and 3‑year pro forma into detailed line items.</div>
+  <div class="row" style="margin-top:10px;">
+    <div class="field"><label>Payer mix — Medicare %</label><input id="pm_medicare" type="number" value="45" min="0" max="100" step="1"/></div>
+    <div class="field"><label>Payer mix — Medicaid %</label><input id="pm_medicaid" type="number" value="20" min="0" max="100" step="1"/></div>
+    <div class="field"><label>Payer mix — Commercial %</label><input id="pm_commercial" type="number" value="30" min="0" max="100" step="1"/></div>
+    <div class="field"><label>Payer mix — Self‑pay %</label><input id="pm_selfpay" type="number" value="5" min="0" max="100" step="1"/></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Reimbursement factor — Medicare</label><input id="rf_medicare" type="number" value="0.90" step="0.05" min="0"/></div>
+    <div class="field"><label>Reimbursement factor — Medicaid</label><input id="rf_medicaid" type="number" value="0.70" step="0.05" min="0"/></div>
+    <div class="field"><label>Reimbursement factor — Commercial</label><input id="rf_commercial" type="number" value="1.20" step="0.05" min="0"/></div>
+    <div class="field"><label>Reimbursement factor — Self‑pay</label><input id="rf_selfpay" type="number" value="0.20" step="0.05" min="0"/></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Marginal cost split — Labor %</label><input id="mc_labor" type="number" value="55" min="0" max="100" step="1"/></div>
+    <div class="field"><label>Marginal cost split — Supplies %</label><input id="mc_supplies" type="number" value="25" min="0" max="100" step="1"/></div>
+    <div class="field"><label>Marginal cost split — Diagnostics %</label><input id="mc_diag" type="number" value="20" min="0" max="100" step="1"/></div>
+    <div class="field"><label>Program admin fixed cost ($/month)</label><input id="prog_fixed_month" type="number" value="2500" min="0" step="100"/></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Broker/dispatch fee (% of transport direct)</label><input id="prog_broker_pct" type="number" value="8" min="0" max="100" step="1"/></div>
+    <div class="field"><label>Data/reporting cost ($/month)</label><input id="prog_data_month" type="number" value="500" min="0" step="50"/></div>
+    <div class="field"><label>Compliance/audit cost ($/year)</label><input id="prog_compliance_year" type="number" value="4000" min="0" step="250"/></div>
+    <div class="field"><label>Contingency (% of subtotal program cost)</label><input id="prog_cont_pct" type="number" value="3" min="0" max="100" step="1"/></div>
+  </div>
+</div>
+
+<div class="btnbar" style="margin-top:10px;">
+
+            <button class="primary" id="btn_gen_draft" type="button" onclick="generateDraft()">Generate Draft</button>
+            <button id="btn_copy_draft" type="button" onclick="copyDraft()">Copy</button>
+            <button class="secondary" id="btn_dl_draft" type="button" onclick="downloadDraft()">Download .txt</button>
+          </div>
+
+          <div class="split" style="margin-top:12px;">
+            <div class="card" style="box-shadow:none;">
+              <div style="font-weight:900; margin-bottom:6px;">Preview</div>
+              <div id="draft_preview" class="codebox" style="min-height:360px;">Select an artifact type and click Generate Draft.</div>
+            </div>
+            <div class="card" style="box-shadow:none;">
+              <div style="font-weight:900; margin-bottom:6px;">Included sources</div>
+              <div class="codebox" style="min-height:360px;" id="draft_sources">(Tier 1 / Tier 2 / Tier 3 state will appear here after you run them.)</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Catch runtime errors and show in UI
+  window.addEventListener("error", (e)=> {
+    const msg = (e && e.message) ? e.message : String(e);
+    const err = document.getElementById("errbar");
+    if(err){ err.style.display="block"; err.textContent = "Script error: " + msg; }
+  });
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+  function showErr(msg){ const e=document.getElementById("errbar"); e.style.display="block"; e.textContent = msg; }
+  function clearErr(){ const e=document.getElementById("errbar"); e.style.display="none"; e.textContent = ""; }
+  function showOk(msg){ const o=document.getElementById("okbar"); o.style.display="block"; o.textContent = msg; }
+
+  const state = {
+    docs: [],
+    urls: [],
+    evidence: [],
+    transport: {overall:null, age6574:null},
+    tier1: {struct:0, input:0, align:0, iri:0},
+    cra: {score:null}
+  };
+
+  // ------- PDF parsing helpers -------
+  async function extractPdfText(file){
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+    const numPages = pdf.numPages;
+    const textByPage = [];
+    for(let p=1; p<=numPages; p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const strings = content.items.map(it => it.str).filter(Boolean);
+      const text = strings.join(" ").replace(/\s+/g,' ').trim();
+      textByPage.push(text);
+    }
+    return {pages: numPages, textByPage};
+  }
+  async function extractTxt(file){
+    const text = await file.text();
+    return {pages: 1, textByPage: [text.replace(/\s+/g,' ').trim()]};
+  }
+
+  function addEvidence(label, snippet, doc, page){ state.evidence.push({label, snippet, doc, page}); }
+
+  function findPercentNear(text, keyword){
+    const re = new RegExp(`${keyword}[\\s\\S]{0,160}?(\\d{1,2}(?:\\.\\d+)?)%`, "i");
+    const m = text.match(re);
+    if(!m) return null;
+    const val = parseFloat(m[1]);
+    if(isNaN(val)) return null;
+    return {val, snippet: m[0].slice(0,280)};
+  }
+  function findAge6574Transport(text){
+    const re = /65\s*[-–]\s*74[\s\S]{0,160}transportation[\s\S]{0,80}?(\d{1,2}(?:\.\d+)?)%/i;
+    const m = text.match(re);
+    if(!m) return null;
+    const val = parseFloat(m[1]);
+    if(isNaN(val)) return null;
+    return {val, snippet: m[0].slice(0,280)};
+  }
+
+  function scanTransport(doc){
+    for(let i=0;i<doc.textByPage.length;i++){
+      const t = doc.textByPage[i] || "";
+      const tr = findPercentNear(t,"transportation");
+      if(tr && state.transport.overall==null){
+        state.transport.overall = tr.val;
+        addEvidence("Transportation barrier", tr.snippet, doc.name, i+1);
+      }
+      const tr6574 = findAge6574Transport(t);
+      if(tr6574){
+        state.transport.age6574 = tr6574.val;
+        addEvidence("Transportation barrier (65–74)", tr6574.snippet, doc.name, i+1);
+      }
+    }
+  }
+
+  // ------- Tier 1 Rubrics -------
+  const RUBRIC_ITEMS = [
+    {id:"comm_def", domain:"IRS documentation", item:"Community definition + how determined"},
+    {id:"methods", domain:"IRS documentation", item:"Process/methods used to conduct CHNA"},
+    {id:"input_process", domain:"IRS documentation", item:"How input was solicited and considered"},
+    {id:"underserved_desc", domain:"IRS documentation", item:"Underserved/low-income populations represented"},
+    {id:"prioritization", domain:"IRS documentation", item:"Prioritization methodology transparent"},
+    {id:"resources", domain:"IRS documentation", item:"Resources potentially available to address needs"},
+    {id:"impact_eval", domain:"IRS documentation", item:"Evaluation of impact since prior CHNA"},
+    {id:"is_actions", domain:"Implementation strategy", item:"Actions to address each need"},
+    {id:"is_resources", domain:"Implementation strategy", item:"Resources + anticipated impact"},
+    {id:"is_collab", domain:"Implementation strategy", item:"Collaborations with other institutions"},
+    {id:"wc_solicited", domain:"Written community comments", item:"How written comments were solicited"},
+    {id:"wc_received", domain:"Written community comments", item:"At least 1 written comment received"},
+    {id:"wc_used", domain:"Written community comments", item:"How written comments were incorporated"}
+  ];
+
+  const ALIGN_ITEMS = [
+    {id:"prio_continuity", item:"Priority continuity (CHNA priorities appear in CHIP priorities)"},
+    {id:"action_specific", item:"Action specificity (measurable strategies/objectives exist)"},
+    {id:"ownership", item:"Governance/ownership (responsible entities identified)"},
+    {id:"monitoring", item:"Monitoring cadence (quarterly/annual monitoring described)"},
+    {id:"resources_sig", item:"Resource signals (funding/partners/resources referenced)"},
+    {id:"sdoh_oper", item:"SDOH/transport operationalization (transport barriers → strategies/actions)"}
+  ];
+
+  function buildRubricTable(){
+    const tbl = document.getElementById("tbl_rubric");
+    let h = "<tr><th>Domain</th><th>Item</th><th>Score</th><th>Evidence</th></tr>";
+    for(const it of RUBRIC_ITEMS){
+      h += `<tr>
+        <td>${it.domain}</td>
+        <td><b>${it.item}</b></td>
+        <td><select data-rubric="${it.id}">
+          <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+        </select></td>
+        <td><textarea data-evidence="${it.id}" placeholder="Page/URL/excerpt"></textarea></td>
+      </tr>`;
+    }
+    tbl.innerHTML = h;
+  }
+
+  function buildAlignTable(){
+    const tbl = document.getElementById("tbl_align");
+    let h = "<tr><th>Item</th><th>Score</th><th>Evidence</th></tr>";
+    for(const it of ALIGN_ITEMS){
+      h += `<tr>
+        <td><b>${it.item}</b></td>
+        <td><select data-align="${it.id}">
+          <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+        </select></td>
+        <td><textarea data-align-e="${it.id}" placeholder="Page/URL/excerpt"></textarea></td>
+      </tr>`;
+    }
+    tbl.innerHTML = h;
+  }
+
+  function prefillRubric(){
+    const full = state.docs.map(d=>d.textByPage.join(" ")).join(" ").toLowerCase();
+    const set = (id, score, note)=>{
+      const sel = document.querySelector(`select[data-rubric='${id}']`);
+      const ta  = document.querySelector(`textarea[data-evidence='${id}']`);
+      if(sel && sel.value==="0") sel.value = String(score);
+      if(ta && !ta.value) ta.value = note;
+    };
+    if(full.includes("community served") || full.includes("community we serve") || full.includes("community definition")) set("comm_def",1,"Auto: community definition language detected.");
+    if(full.includes("methods") || full.includes("methodology") || full.includes("data sources")) set("methods",1,"Auto: methods language detected.");
+    if(full.includes("key informant") || full.includes("survey") || full.includes("focus group")) set("input_process",1,"Auto: input solicitation language detected.");
+    if(full.includes("underserved") || full.includes("low-income") || full.includes("medically underserved")) set("underserved_desc",1,"Auto: underserved language detected.");
+    if(full.includes("priorit") || full.includes("weighted") || full.includes("scoring")) set("prioritization",1,"Auto: prioritization language detected.");
+    if(full.includes("resources") || full.includes("available resources") || full.includes("assets")) set("resources",1,"Auto: resources language detected.");
+    if(full.includes("evaluation of impact") || full.includes("since the previous chna")) set("impact_eval",1,"Auto: impact evaluation language detected.");
+    if(full.includes("implementation strategy") || full.includes("actions")) set("is_actions",1,"Auto: action language detected.");
+    if(full.includes("anticipated impact") || full.includes("resources devoted") || full.includes("budget")) set("is_resources",1,"Auto: resources/impact language detected.");
+    if(full.includes("collaboration") || full.includes("partner") || full.includes("coalition")) set("is_collab",1,"Auto: collaboration language detected.");
+    if(full.includes("written comment") || full.includes("public comment")) set("wc_solicited",1,"Auto: written/public comment language detected.");
+    showOk("Tier 1 auto-prefill complete (verify/override).");
+  }
+
+  function classifyDocs(){
+    const chnaSel = document.getElementById("sel_chna");
+    const chipSel = document.getElementById("sel_chip");
+    chnaSel.innerHTML=""; chipSel.innerHTML="";
+    if(state.docs.length===0){
+      chnaSel.innerHTML="<option value=''> (no uploads) </option>";
+      chipSel.innerHTML="<option value=''> (no uploads) </option>";
+      return;
+    }
+    for(const d of state.docs){
+      const o1=document.createElement("option"); o1.value=d.name; o1.textContent=d.name; chnaSel.appendChild(o1);
+      const o2=document.createElement("option"); o2.value=d.name; o2.textContent=d.name; chipSel.appendChild(o2);
+    }
+    const lower = (d)=>d.textByPage.join(" ").toLowerCase();
+    const chna = state.docs.find(d=>lower(d).includes("community health needs assessment") || lower(d).includes("chna")) || state.docs[0];
+    const chip = state.docs.find(d=>lower(d).includes("community health improvement plan") || lower(d).includes("chip")) || (state.docs.length>1 ? state.docs[1] : state.docs[0]);
+    chnaSel.value = chna.name;
+    chipSel.value = chip.name;
+    if(chnaSel.value===chipSel.value && state.docs.length>1) chipSel.value = state.docs[1].name;
+  }
+
+  function getDocText(name){
+    const d = state.docs.find(x=>x.name===name);
+    return d ? d.textByPage.join("\n") : "";
+  }
+  function extractCHNAPriorities(text){
+    const m = text.match(/These top three health priorities are:[\s\S]{0,260}/i);
+    if(m){
+      const seg = m[0];
+      const lines = seg.split(/\n|\r/).map(x=>x.trim()).filter(Boolean);
+      const pr=[];
+      for(const ln of lines){
+        const mm = ln.match(/^\s*\d\s+(.+)$/);
+        if(mm) pr.push(mm[1].trim());
+      }
+      if(pr.length) return pr.slice(0,3);
+    }
+    const keys=["Mental Health","Access to Care","Basic Needs","Substance Use","Chronic Disease","Maternal"];
+    const lower=text.toLowerCase(); const pr=[];
+    for(const k of keys){ if(lower.includes(k.toLowerCase())) pr.push(k); if(pr.length>=3) break; }
+    return pr;
+  }
+  function extractCHIPPriorities(text){
+    const pr=[]; const re=/Priority Health Issue:\s*([^\n\r]+)/gi; let m;
+    while((m=re.exec(text))!==null){
+      const p=m[1].trim(); if(p && !pr.includes(p)) pr.push(p); if(pr.length>=8) break;
+    }
+    if(pr.length) return pr;
+    const keys=["Adverse Childhood Experiences","Mental Health","Substance Abuse","Chronic Disease","Access to Care"];
+    const lower=text.toLowerCase();
+    for(const k of keys){ if(lower.includes(k.toLowerCase())) pr.push(k); }
+    return pr;
+  }
+
+  function prefillAlignment(){
+    const chnaName=document.getElementById("sel_chna")?.value || "";
+    const chipName=document.getElementById("sel_chip")?.value || "";
+    if(!chnaName || !chipName){ showOk("Upload CHNA and CHIP to prefill."); return; }
+    const chnaText=getDocText(chnaName);
+    const chipText=getDocText(chipName);
+    const chnaP=extractCHNAPriorities(chnaText);
+    const chipP=extractCHIPPriorities(chipText);
+
+    const box=document.getElementById("prio_box");
+    box.textContent = `CHNA priorities (${chnaName}):\n- ${chnaP.join("\n- ") || "(not detected)"}\n\nCHIP priorities (${chipName}):\n- ${chipP.join("\n- ") || "(not detected)"}`;
+
+    const overlap = chnaP.filter(x=>chipP.some(y=>y.toLowerCase().includes(x.toLowerCase()) || x.toLowerCase().includes(y.toLowerCase())));
+    const continuity = overlap.length>=2 ? 2 : (overlap.length===1 ? 1 : 0);
+
+    const chipLower=chipText.toLowerCase();
+    const set=(id,score,note)=>{
+      const sel=document.querySelector(`select[data-align='${id}']`);
+      const ta=document.querySelector(`textarea[data-align-e='${id}']`);
+      if(sel) sel.value=String(score);
+      if(ta && !ta.value) ta.value=note;
+    };
+    set("prio_continuity", continuity, `Auto overlap: ${overlap.join(", ") || "none"}`);
+    set("action_specific", (chipLower.includes("action plan") && (chipLower.includes("outcome objective") || chipLower.includes("key activities"))) ? 2 : (chipLower.includes("strategy") ? 1 : 0), "Auto: action plan/strategy language");
+    set("ownership", (chipLower.includes("who is responsible") || chipLower.includes("community partners")) ? 2 : (chipLower.includes("coalition") ? 1 : 0), "Auto: governance/ownership language");
+    set("monitoring", (chipLower.includes("monitor") && (chipLower.includes("quarter") || chipLower.includes("annually"))) ? 2 : (chipLower.includes("monitor") ? 1 : 0), "Auto: monitoring cadence language");
+    set("resources_sig", (chipLower.includes("funding") || chipLower.includes("resource")) ? 2 : (chipLower.includes("partner") ? 1 : 0), "Auto: resources/funding signals");
+    set("sdoh_oper", (chipLower.includes("transport") && (chipLower.includes("contract") || chipLower.includes("agreement") || chipLower.includes("assessment"))) ? 2 : (chipLower.includes("transport") ? 1 : 0), "Auto: transport operationalization");
+  }
+
+  function scoreStructural(){
+    let total=0, max=0;
+    for(const it of RUBRIC_ITEMS){
+      if(it.id.startsWith("wc_")) continue;
+      const sel=document.querySelector(`select[data-rubric='${it.id}']`);
+      total += sel ? parseInt(sel.value,10) : 0;
+      max += 2;
+    }
+    return max ? Math.round((total/max)*100) : 0;
+  }
+  function scoreInput(){
+    const ids=["wc_solicited","wc_received","wc_used"];
+    let total=0; const max=ids.length*2;
+    for(const id of ids){
+      const sel=document.querySelector(`select[data-rubric='${id}']`);
+      total += sel ? parseInt(sel.value,10) : 0;
+    }
+    const compliant = ids.every(id=>{
+      const sel=document.querySelector(`select[data-rubric='${id}']`);
+      return sel && parseInt(sel.value,10)===2;
+    });
+    const pct = max ? Math.round((total/max)*100) : 0;
+    return {pct, compliant};
+  }
+  function scoreAlign(){
+    let total=0; const max=ALIGN_ITEMS.length*2;
+    for(const it of ALIGN_ITEMS){
+      const sel=document.querySelector(`select[data-align='${it.id}']`);
+      total += sel ? parseInt(sel.value,10) : 0;
+    }
+    return max ? Math.round((total/max)*100) : 0;
+  }
+
+  function scoreAll(){
+    const struct = scoreStructural();
+    const inp = scoreInput();
+    const align = scoreAlign();
+    const iri = Math.round(0.40*struct + 0.20*inp.pct + 0.40*align);
+
+    document.getElementById("kpi_struct").textContent = struct + "%";
+    document.getElementById("kpi_input").textContent = inp.compliant ? "Compliant" : (inp.pct + "%");
+    document.getElementById("kpi_align").textContent = align + "%";
+    document.getElementById("kpi_iri").textContent = iri + "%";
+    document.getElementById("iri_small").textContent = iri + "%";
+
+    const unlocked = (struct>=55 && iri>=55);
+    const dot=document.getElementById("gateDot");
+    dot.classList.remove("good","bad");
+    dot.classList.add(unlocked ? "good" : "bad");
+    document.getElementById("gateText").textContent = unlocked ? "Tier 2 unlocked (run Tier 2 to unlock Tier 3)" : "Run Tier 1 to unlock Tier 2/3";
+
+    // gaps simple
+    const gaps=[];
+    for(const it of RUBRIC_ITEMS){
+      const sel=document.querySelector(`select[data-rubric='${it.id}']`);
+      if(sel && parseInt(sel.value,10)===0) gaps.push(`- ${it.domain}: ${it.item}`);
+    }
+    const recs = gaps.length ? ["Top gaps:", ...gaps.slice(0,8)] : ["No major gaps flagged by rubric scoring."];
+    document.getElementById("gap_box").textContent = recs.join("\n");
+
+    state.tier1 = {struct, input: inp.pct, align, iri};
+    return unlocked;
+  }
+
+  function renderEvidenceTable(){
+    const tbl = document.getElementById("tbl_evidence");
+    if(state.evidence.length===0){
+      tbl.innerHTML = "<tr><th>Label</th><th>Snippet</th><th>Doc</th><th>Page</th></tr><tr><td colspan='4'>(none)</td></tr>";
+      return;
+    }
+    const slice = state.evidence.slice(-25).reverse();
+    let h = "<tr><th>Label</th><th>Snippet</th><th>Doc</th><th>Page</th></tr>";
+    for(const e of slice){
+      h += `<tr><td>${e.label}</td><td>${e.snippet}</td><td class="mono">${e.doc}</td><td class="mono">${e.page}</td></tr>`;
+    }
+    tbl.innerHTML = h;
+    document.getElementById("ev_count").textContent = String(state.evidence.length);
+  }
+
+  function refreshUrlList(){
+    const box = document.getElementById("url_list");
+    box.textContent = state.urls.length ? state.urls.map((u,i)=>`${i+1}. ${u}`).join("\n") : "(no URLs added)";
+  }
+
+  // ------- Tier 2 CRA engine -------
+  function runCRAEngine(){
+    const lmi = parseInt(document.getElementById("cra_lmi").value,10)||0;
+    const aa = parseInt(document.getElementById("cra_aa").value,10)||0;
+    const primary = parseInt(document.getElementById("cra_primary").value,10)||0;
+    const resp = parseInt(document.getElementById("cra_resp").value,10)||0;
+    const complex = parseInt(document.getElementById("cra_complex").value,10)||0;
+    const lead = parseInt(document.getElementById("cra_lead").value,10)||0;
+    const docs = Array.from(document.querySelectorAll(".cra_doc"));
+    const docsPct = docs.length ? Math.round((docs.filter(x=>x.checked).length/docs.length)*100) : 0;
+
+    const elig = Math.round((primary/2)*40 + (lmi/100)*30 + (aa/100)*30);
+    const def = Math.round((resp/2)*35 + (complex/2)*25 + (lead/2)*20 + (docsPct/100)*20);
+    const total = Math.round(0.45*elig + 0.35*def + 0.20*docsPct);
+
+    document.getElementById("cra_elig").textContent = elig + "%";
+    document.getElementById("cra_def").textContent = def + "%";
+    document.getElementById("cra_docs").textContent = docsPct + "%";
+    document.getElementById("cra_total").textContent = total + "%";
+
+    const flags=[];
+    if(primary<2) flags.push("• Clarify primary purpose and community development intent.");
+    if(lmi<50) flags.push("• Strengthen LMI targeting method.");
+    if(aa<50) flags.push("• Strengthen AA attribution (ZIP/tract capture).");
+    if(resp<2) flags.push("• Strengthen link to CHNA/CHIP evidence.");
+    if(docsPct<70) flags.push("• Close documentation gaps before pitch to bank compliance.");
+    document.getElementById("cra_flags").textContent = flags.length ? flags.join("\n") : "No major flags detected.";
+
+    const narr =
+`Draft narrative starter:
+
+The institution supported a community development activity targeted to low- or moderate-income individuals.
+The activity was responsive to documented community needs identified through the CHNA/CHIP process (Tier 1 IRI: ${state.tier1.iri}%).
+The institution maintained documentation supporting beneficiary eligibility, assessment area attribution, and measurable outputs.`;
+    document.getElementById("cra_narr").textContent = narr;
+
+    const unlocked = (state.tier1.iri>=55 && total>=60);
+    const dot=document.getElementById("gateDot");
+    dot.classList.remove("good","bad");
+    dot.classList.add(unlocked ? "good" : "bad");
+    document.getElementById("gateText").textContent = unlocked ? "Tier 3 unlocked" : "Improve Tier 1 + Tier 2 to unlock Tier 3";
+    showOk("Tier 2 calculated.");
+  }
+
+  function populateCRAFromTier1(){
+    // If transport signal found, set responsiveness high
+    const hasTrans = (state.transport.overall != null);
+    document.getElementById("cra_resp").value = hasTrans ? "2" : "1";
+    showOk("Tier 2 responsiveness updated using Tier 1 signals.");
+  }
+
+  // ------- Tier 3 ROI parity -------
+  function normRate(v){
+    const x = parseFloat(v);
+    if(isNaN(x)) return 0;
+    return x>1 ? x/100 : x;
+  }
+  let roiChart = null;
+  function renderROI(){
+    const visits = parseFloat(document.getElementById("a_visits").value)||0;
+    const noshow = normRate(document.getElementById("a_noshow").value);
+    const share = normRate(document.getElementById("a_share").value);
+    const netrev = parseFloat(document.getElementById("a_netrev").value)||0;
+    const margc = parseFloat(document.getElementById("a_margc").value)||0;
+    const mitig = normRate(document.getElementById("b_mitig").value);
+    const trip = parseFloat(document.getElementById("b_trip").value)||0;
+    const over = normRate(document.getElementById("b_over").value);
+
+    const transport_no_shows = visits*noshow*share;
+    const prevented = transport_no_shows*mitig;
+    const gross_rev = prevented*netrev;
+    const marginal_cost = prevented*margc;
+    const transport_cost = prevented*trip;
+    const overhead_cost = transport_cost*over;
+    const total_cost = transport_cost + overhead_cost;
+    const net = gross_rev - marginal_cost - total_cost;
+    const roi = total_cost===0 ? 0 : net/total_cost;
+    const be_trip = netrev - margc;
+
+    state.roi = {visits, noshow, share, netrev, margc, mitig, trip, over, transport_no_shows, prevented, gross_rev, marginal_cost, transport_cost, overhead_cost, total_cost, net, roi, be_trip};
+
+    document.getElementById("roi_net").textContent = "$" + Math.round(net).toLocaleString();
+    document.getElementById("roi_cost").textContent = "$" + Math.round(total_cost).toLocaleString();
+    document.getElementById("roi_x").textContent = (total_cost===0) ? "—" : roi.toFixed(2)+"x";
+    document.getElementById("roi_be").textContent = "$" + Math.round(be_trip).toLocaleString();
+
+    const ctx = document.getElementById("roi_chart");
+    if(roiChart) roiChart.destroy();
+    roiChart = new Chart(ctx, {type:"bar",
+      data:{labels:["Gross rev","Marginal cost","Program cost","Net benefit"],
+      datasets:[{data:[gross_rev,marginal_cost,total_cost,net]}]},
+      options:{plugins:{legend:{display:false}}}
+    });
+
+    document.getElementById("roi_audit").textContent =
+`ROI audit (Excel parity)
+Prevented no-shows: ${Math.round(prevented).toLocaleString()}
+Gross revenue: $${Math.round(gross_rev).toLocaleString()}
+Marginal cost: $${Math.round(marginal_cost).toLocaleString()}
+Program cost: $${Math.round(total_cost).toLocaleString()}
+Net benefit: $${Math.round(net).toLocaleString()}
+ROI: ${total_cost===0 ? "—" : roi.toFixed(2)+"x"}`;
+
+    showOk("Tier 3 ROI computed.");
+  }
+
+  // ------- Tabs -------
+  function setView(view){
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    const vv = document.getElementById("view_"+view);
+    if(vv) vv.classList.add("active");
+    document.querySelectorAll(".tabbtn").forEach(b=>b.classList.remove("active"));
+    const tt = document.getElementById("tab_"+view);
+    if(tt) tt.classList.add("active");
+  }
+  document.querySelectorAll(".tabbtn").forEach(btn=>{
+    btn.addEventListener("click", ()=> setView(btn.dataset.view));
+  });
+
+  // ------- Buttons -------
+  document.getElementById("btn_add_url").addEventListener("click", ()=>{
+    const u = (document.getElementById("url_input").value||"").trim();
+    if(!u) return;
+    state.urls.push(u);
+    document.getElementById("url_input").value="";
+    refreshUrlList();
+    showOk("URL added.");
+  });
+
+  document.getElementById("btn_demo").addEventListener("click", ()=>{
+    clearErr();
+    const demoText = "These top three health priorities are: 1 Mental Health 2 Access to Care 3 Basic Needs. Transportation problems 2.7%. Age 65-74 transportation problems 8.5%. Public comment: no comments received. Action plan and outcome objective present.";
+    state.docs = [{name:"Demo_CHNA.txt", type:"txt", pages:1, textByPage:[demoText]}];
+    state.evidence = [];
+    state.transport = {overall:null, age6574:null};
+    scanTransport(state.docs[0]);
+    document.getElementById("docs_count").textContent = "1";
+    renderEvidenceTable();
+    classifyDocs();
+    prefillRubric();
+    prefillAlignment();
+    scoreAll();
+    showOk("Demo loaded.");
+  });
+
+  document.getElementById("btn_process").addEventListener("click", async ()=>{
+    clearErr();
+    const log = document.getElementById("proc_log");
+    log.textContent = "";
+    const logln = (s)=>{ log.textContent += s + "\n"; };
+
+    state.docs = [];
+    state.evidence = [];
+    state.transport = {overall:null, age6574:null};
+
+    const files = Array.from(document.getElementById("file_input").files || []);
+    if(files.length===0){
+      logln("No files selected.");
+      showErr("Select one or more PDFs/TXTs first.");
+      return;
+    }
+
+    logln(`Starting parse for ${files.length} file(s)...`);
+    for(const f of files){
+      logln(`Parsing: ${f.name}`);
+      const ext = (f.name.split(".").pop()||"").toLowerCase();
+      try{
+        let parsed=null;
+        if(ext==="pdf") parsed = await extractPdfText(f);
+        else if(ext==="txt") parsed = await extractTxt(f);
+        else { logln(`Skipping unsupported file type: ${f.name}`); continue; }
+
+        const doc = {name:f.name, type:ext, pages:parsed.pages, textByPage:parsed.textByPage};
+        state.docs.push(doc);
+        scanTransport(doc);
+
+        const charCount = doc.textByPage.join(" ").length;
+        logln(`✓ Parsed ${f.name} (${parsed.pages} page(s)); extracted chars=${charCount}`);
+        if(charCount < 400){
+          logln(`  ⚠ Low extracted text. This may be a scanned PDF (image-only). Consider using a text-based version.`);
+        }
+      }catch(e){
+        console.error(e);
+        logln(`✗ Failed ${f.name}: ${e?.message || e}`);
+      }
+    }
+
+    document.getElementById("docs_count").textContent = String(state.docs.length);
+    renderEvidenceTable();
+    classifyDocs();
+    prefillRubric();
+    prefillAlignment();
+    scoreAll();
+    showOk("Processing complete. Review Tier 1, then Tier 2.");
+  });
+
+  document.getElementById("btn_export").addEventListener("click", ()=>{
+    const payload = {
+      generated_at: new Date().toISOString(),
+      docs: state.docs.map(d=>({name:d.name, pages:d.pages, type:d.type})),
+      urls: state.urls,
+      transport: state.transport,
+      tier1: state.tier1,
+      cra: state.cra.score,
+      evidence: state.evidence.slice(-200)
+    };
+    const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "chna_cra_export.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("btn_reset").addEventListener("click", ()=>{
+    clearErr();
+    state.docs=[]; state.urls=[]; state.evidence=[]; state.transport={overall:null, age6574:null};
+    document.getElementById("docs_count").textContent="0";
+    document.getElementById("ev_count").textContent="0";
+    document.getElementById("proc_log").textContent="(processing log)";
+    refreshUrlList();
+    renderEvidenceTable();
+    buildRubricTable();
+    buildAlignTable();
+    showOk("Reset complete.");
+  });
+
+  // sliders readouts
+  (function(){
+    const aa = document.getElementById("cra_aa");
+    const lmi = document.getElementById("cra_lmi");
+    const aaR = document.getElementById("cra_aa_read");
+    const lmiR = document.getElementById("cra_lmi_read");
+    aaR.textContent = aa.value + "%";
+    lmiR.textContent = lmi.value + "%";
+    aa.addEventListener("input", ()=> aaR.textContent = aa.value + "%");
+    lmi.addEventListener("input", ()=> lmiR.textContent = lmi.value + "%");
+  })();
+
+  // dependency checks
+  if(!window.pdfjsLib){ showErr("PDF engine (pdf.js) did not load. If you are on a restricted network, cdnjs.cloudflare.com may be blocked. PDF parsing will not work until allowed."); }
+  if(!window.Chart){ showErr("Chart engine (Chart.js) did not load. If you are on a restricted network, cdn.jsdelivr.net may be blocked. Charts will not render until allowed."); }
+
+  // init
+  buildRubricTable();
+  buildAlignTable();
+  refreshUrlList();
+  renderEvidenceTable();
+// ------- Artifacts generator (deterministic templates) -------
+  function fmtMoney(n){
+    if(n==null || isNaN(n)) return "—";
+    const sign = n < 0 ? "-" : "";
+    const v = Math.abs(n);
+    return sign + "$" + Math.round(v).toLocaleString();
+  }
+
+  function tierSourcesText(){
+    const t1 = state.tier1 || {};
+    const t2 = state.cra?.score || null;
+    const t3 = state.roi || null;
+    const parts = [];
+    parts.push("Tier 1:");
+    parts.push(`- Structural: ${t1.struct ?? "—"}% | Input: ${t1.input ?? "—"}% | Alignment: ${t1.align ?? "—"}% | IRI: ${t1.iri ?? "—"}%`);
+    parts.push("");
+    parts.push("Tier 2:");
+    if(t2){
+      parts.push(`- Total: ${t2.total ?? "—"}% | Eligibility: ${t2.elig ?? "—"}% | Defensibility: ${t2.def ?? "—"}% | Docs: ${t2.docScore ?? "—"}%`);
+      parts.push(`- LMI: ${t2.lmi ?? "—"}% | AA: ${t2.aa ?? "—"}% | Activity: ${t2.activity ?? "—"} | Structure: ${t2.structure ?? "—"}`);
+    } else {
+      parts.push("- Not yet calculated (run Tier 2).");
+    }
+    parts.push("");
+    parts.push("Tier 3:");
+    if(t3){
+      parts.push(`- Net benefit: ${fmtMoney(t3.net)} | Program cost: ${fmtMoney(t3.total_cost)} | ROI: ${t3.total_cost===0 ? "—" : t3.roi.toFixed(2)+"x"}`);
+    } else {
+      parts.push("- Not yet calculated (run Tier 3).");
+    }
+    return parts.join("\n");
+  }
+
+  function generateDraftText(type){
+    const proj = (document.getElementById("draft_project").value || "").trim() || "CHNA–CRA Project";
+    const partner = (document.getElementById("draft_partner").value || "").trim();
+    const structureNote = (document.getElementById("draft_structure").value || "").trim();
+    const growth = (parseFloat(document.getElementById("draft_growth").value||"5")/100);
+    const infl = (parseFloat(document.getElementById("draft_infl").value||"3")/100);
+
+    const t1 = state.tier1 || {};
+    const t2 = state.cra?.score || null;
+    const r = state.roi || null;
+
+    const header = `${proj}\nGenerated: ${new Date().toISOString()}\n\n`;
+    const partnerLine = partner ? `Implementing partner: ${partner}\n` : "";
+    const structLine = structureNote ? `Funding structure notes: ${structureNote}\n` : "";
+
+    const t1Block = `Tier 1 Investment Readiness Index (IRI): ${t1.iri ?? "—"}%\nStructural: ${t1.struct ?? "—"}% | Community input: ${t1.input ?? "—"}% | Alignment: ${t1.align ?? "—"}%\n`;
+    const t2Block = t2 ? `Tier 2 CRA score: ${t2.total}% (Elig ${t2.elig} / Def ${t2.def} / Docs ${t2.docScore})\nLMI target: ${t2.lmi}% | AA target: ${t2.aa}% | Activity: ${t2.activity} | Structure: ${t2.structure}\n`
+                      : `Tier 2 CRA score: (not yet calculated)\n`;
+    const t3Block = r ? `Tier 3 ROI (Excel parity): Net ${fmtMoney(r.net)} | Cost ${fmtMoney(r.total_cost)} | ROI ${(r.total_cost===0) ? "—" : r.roi.toFixed(2)+"x"}\n`
+                      : `Tier 3 ROI: (not yet calculated)\n`;
+
+    const evidenceHint = state.evidence?.length ? `Evidence snippets captured: ${state.evidence.length}\n` : `Evidence snippets captured: 0\n`;
+
+    if(type==="cra_memo"){
+      return header +
+`CRA Activity Justification Memo (Draft)
+
+${partnerLine}${structLine}
+1) Need statement (CHNA/CHIP)
+${t1Block}${evidenceHint}
+
+2) CRA structure and defensibility
+${t2Block}
+
+3) Financial discipline (ROI)
+${t3Block}
+
+4) Documentation package (minimum)
+- CHNA/CHIP excerpts + page references
+- Beneficiary definition (LMI method and/or geography)
+- Assessment area attribution method (ZIP/tract capture)
+- Agreement/MOU/contract
+- Invoices/payments and service logs
+- Monitoring cadence + quarterly reporting template
+`;
+    }
+
+    if(type==="exam_narrative"){
+      return header +
+`Examiner‑Facing Narrative Starter (Draft)
+
+The institution supported a community development activity responsive to documented community needs identified through a CHNA/CHIP process (Tier 1 IRI: ${t1.iri ?? "—"}%).
+The activity was structured to target low‑ or moderate‑income individuals and is attributable to the assessment area through defined beneficiary capture methods.
+The institution maintained an audit trail including agreements, payments, service logs, and monitoring reports.
+
+${t2 ? `Quantification targets: LMI ${t2.lmi}%, AA ${t2.aa}%, documentation readiness ${t2.docScore}%.\n` : "" }
+${r ? `Financial discipline: net annual benefit ${fmtMoney(r.net)} on program cost ${fmtMoney(r.total_cost)}.\n` : "" }
+`;
+    }
+
+    if(type==="crosswalk"){
+      const rows = [];
+      if(t2){
+        rows.push(`| Activity | Structure | LMI% | AA% | Eligibility% | Defensibility% | Docs% | Total% |`);
+        rows.push(`|---|---:|---:|---:|---:|---:|---:|---:|`);
+        rows.push(`| ${t2.activity} | ${t2.structure} | ${t2.lmi} | ${t2.aa} | ${t2.elig} | ${t2.def} | ${t2.docScore} | ${t2.total} |`);
+      } else {
+        rows.push("(Run Tier 2 to populate crosswalk.)");
+      }
+      return header + "CRA Eligibility Crosswalk (Draft)\n\n" + rows.join("\n") + "\n";
+    }
+
+    if(type==="term_sheet"){
+      return header +
+`Joint Partnership Term Sheet (Draft)
+
+Project: ${proj}
+${partnerLine}${structLine}
+Purpose: Address documented access disparity and deliver measurable community development impact.
+
+Key parameters:
+- Tier 1 IRI: ${t1.iri ?? "—"}%
+- CRA posture: ${t2 ? `${t2.total}% (LMI ${t2.lmi}%, AA ${t2.aa}%)` : "Run Tier 2"}
+- ROI posture: ${r ? `${fmtMoney(r.net)} net benefit; ${fmtMoney(r.total_cost)} program cost` : "Run Tier 3"}
+
+Evidence & reporting:
+- Maintain CHNA/CHIP excerpts, service logs, and quarterly outcomes reporting package.
+`;
+    }
+
+    if(type==="chna_brief"){
+      return header +
+`CHNA Implementation Alignment Brief (Draft)
+
+Summary:
+- Tier 1 IRI: ${t1.iri ?? "—"}% (Structural ${t1.struct ?? "—"} / Input ${t1.input ?? "—"} / Alignment ${t1.align ?? "—"})
+- Key opportunity: Transportation-to-care (if indicated by CHNA transport signal)
+
+Recommended next-cycle enhancements:
+- Strengthen written comment documentation
+- Improve prioritization transparency and resource linkage
+- Add explicit monitoring cadence tied to CHIP
+`;
+    }
+
+    if(type==="monitor_plan"){
+      return header +
+`Monitoring & Evidence Plan (Draft)
+
+Cadence:
+- Weekly: operational exceptions (cancellations, delays, no-shows)
+- Monthly: units delivered, beneficiary counts, AA attribution spot-check
+- Quarterly: outcomes reporting for CRA file and hospital leadership
+
+Minimum artifacts:
+- Agreements/invoices/service logs
+- Beneficiary LMI method + AA mapping
+- Quarterly report template
+`;
+    }
+
+    if(type==="pnl"){
+      const r = state.model && state.model.outputs ? state.model.outputs : null;
+      if(!r) return header + "Incremental Program P&L unavailable: Run Tier 3 ROI first.
+";
+
+      const pm = {medicare:+(document.getElementById("pm_medicare")?.value||45),
+                  medicaid:+(document.getElementById("pm_medicaid")?.value||20),
+                  commercial:+(document.getElementById("pm_commercial")?.value||30),
+                  selfpay:+(document.getElementById("pm_selfpay")?.value||5)};
+      const sum=(pm.medicare+pm.medicaid+pm.commercial+pm.selfpay)||100;
+      pm.medicare/=sum; pm.medicaid/=sum; pm.commercial/=sum; pm.selfpay/=sum;
+
+      const rf = {medicare:+(document.getElementById("rf_medicare")?.value||0.9),
+                  medicaid:+(document.getElementById("rf_medicaid")?.value||0.7),
+                  commercial:+(document.getElementById("rf_commercial")?.value||1.2),
+                  selfpay:+(document.getElementById("rf_selfpay")?.value||0.2)};
+
+      const mc = {labor:+(document.getElementById("mc_labor")?.value||55),
+                  supplies:+(document.getElementById("mc_supplies")?.value||25),
+                  diag:+(document.getElementById("mc_diag")?.value||20)};
+      const mcs=(mc.labor+mc.supplies+mc.diag)||100;
+      mc.labor/=mcs; mc.supplies/=mcs; mc.diag/=mcs;
+
+      const progFixedMonth=+(document.getElementById("prog_fixed_month")?.value||2500);
+      const progDataMonth=+(document.getElementById("prog_data_month")?.value||500);
+      const progComplianceYear=+(document.getElementById("prog_compliance_year")?.value||4000);
+      const brokerPct=(+(document.getElementById("prog_broker_pct")?.value||8))/100;
+      const contPct=(+(document.getElementById("prog_cont_pct")?.value||3))/100;
+
+      const recovered = r.prevented;
+      const base = r.netrev;
+
+      const rev_medicare = recovered*base*pm.medicare*rf.medicare;
+      const rev_medicaid = recovered*base*pm.medicaid*rf.medicaid;
+      const rev_comm = recovered*base*pm.commercial*rf.commercial;
+      const rev_self = recovered*base*pm.selfpay*rf.selfpay;
+      const total_rev = rev_medicare+rev_medicaid+rev_comm+rev_self;
+
+      const total_marg = recovered*r.margc;
+      const c_labor = total_marg*mc.labor;
+      const c_sup = total_marg*mc.supplies;
+      const c_diag = total_marg*mc.diag;
+
+      const transport = r.transport_cost;
+      const overhead = r.overhead_cost;
+      const broker = transport*brokerPct;
+      const admin = progFixedMonth*12;
+      const data = progDataMonth*12;
+      const comp = progComplianceYear;
+      const subtotal = transport+overhead+broker+admin+data+comp;
+      const contingency = subtotal*contPct;
+      const program = subtotal+contingency;
+
+      const contrib = total_rev-total_marg;
+      const net_prog = contrib-program;
+
+      return header +
+`Incremental Program P&L (Annualized) — Detailed
+
+Recovered visits: ${Math.round(recovered).toLocaleString()}
+
+NET PATIENT SERVICE REVENUE (by payer)
+- Medicare: ${fmtMoney(rev_medicare)}
+- Medicaid: ${fmtMoney(rev_medicaid)}
+- Commercial: ${fmtMoney(rev_comm)}
+- Self-pay: ${fmtMoney(rev_self)}
+= Total revenue: ${fmtMoney(total_rev)}
+
+CLINICAL VARIABLE COSTS
+- Labor: ${fmtMoney(c_labor)}
+- Supplies: ${fmtMoney(c_sup)}
+- Diagnostics: ${fmtMoney(c_diag)}
+= Total clinical cost: ${fmtMoney(total_marg)}
+
+CONTRIBUTION MARGIN
+= ${fmtMoney(contrib)}
+
+PROGRAM OPERATING COSTS
+- Transport direct: ${fmtMoney(transport)}
+- Overhead (parity): ${fmtMoney(overhead)}
+- Broker/dispatch: ${fmtMoney(broker)}
+- Admin: ${fmtMoney(admin)}
+- Data/reporting: ${fmtMoney(data)}
+- Compliance/audit: ${fmtMoney(comp)}
+Subtotal: ${fmtMoney(subtotal)}
+- Contingency: ${fmtMoney(contingency)}
+= Total program cost: ${fmtMoney(program)}
+
+NET OPERATING RESULT
+= ${fmtMoney(net_prog)}
+
+Reference: Tier 3 parity net = ${fmtMoney(r.net_benefit)} (differences reflect added admin/data/compliance/contingency assumptions).
+`;
+    }
+
+    if(type==="proforma_3yr"){
+      const r = state.model && state.model.outputs ? state.model.outputs : null;
+      if(!r) return header + "Project Pro Forma unavailable: Run Tier 3 ROI first.
+";
+      const growth=(parseFloat(document.getElementById("draft_growth")?.value||"5")/100);
+      const infl=(parseFloat(document.getElementById("draft_infl")?.value||"3")/100);
+
+      const progFixedMonth=+(document.getElementById("prog_fixed_month")?.value||2500);
+      const progDataMonth=+(document.getElementById("prog_data_month")?.value||500);
+      const progComplianceYear=+(document.getElementById("prog_compliance_year")?.value||4000);
+      const brokerPct=(+(document.getElementById("prog_broker_pct")?.value||8))/100;
+      const contPct=(+(document.getElementById("prog_cont_pct")?.value||3))/100;
+
+      const baseRecovered=r.prevented;
+      const baseRev=r.gross_rev;
+      const baseMarg=r.marginal_cost;
+      const baseTransport=r.transport_cost;
+      const baseOver=r.overhead_cost;
+      const baseBroker=baseTransport*brokerPct;
+      const baseAdmin=progFixedMonth*12;
+      const baseData=progDataMonth*12;
+      const baseComp=progComplianceYear;
+
+      const rows=[];
+      for(let yr=1; yr<=3; yr++){
+        const vf=Math.pow(1+growth, yr-1);
+        const cf=Math.pow(1+infl, yr-1);
+        const recovered=baseRecovered*vf;
+        const rev=baseRev*vf;
+        const marg=baseMarg*vf;
+        const transport=baseTransport*cf;
+        const over=baseOver*cf;
+        const broker=baseBroker*cf;
+        const admin=baseAdmin*cf;
+        const data=baseData*cf;
+        const comp=baseComp*cf;
+        const subtotal=transport+over+broker+admin+data+comp;
+        const contingency=subtotal*contPct;
+        const program=subtotal+contingency;
+        const contrib=rev-marg;
+        const net=contrib-program;
+        rows.push({yr,recovered,rev,marg,contrib,program,net});
+      }
+
+      const md=[
+        "| Year | Recovered visits | Revenue | Clinical cost | Contribution | Program cost | Net |",
+        "|---:|---:|---:|---:|---:|---:|---:|",
+        ...rows.map(x=>`| ${x.yr} | ${Math.round(x.recovered).toLocaleString()} | ${fmtMoney(x.rev)} | ${fmtMoney(x.marg)} | ${fmtMoney(x.contrib)} | ${fmtMoney(x.program)} | ${fmtMoney(x.net)} |`)
+      ].join("\n");
+
+      const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const y1=rows[0];
+      const mdm=[
+        "| Month | Recovered | Revenue | Clinical | Program | Net |",
+        "|---|---:|---:|---:|---:|---:|",
+        ...months.map(mn=>{
+          const recovered=y1.recovered/12, rev=y1.rev/12, marg=y1.marg/12, prog=y1.program/12;
+          const net=(rev-marg)-prog;
+          return `| ${mn} | ${Math.round(recovered).toLocaleString()} | ${fmtMoney(rev)} | ${fmtMoney(marg)} | ${fmtMoney(prog)} | ${fmtMoney(net)} |`;
+        })
+      ].join("\n");
+
+      return header +
+`Project Pro Forma Budget (3-Year + Monthly Year 1)
+
+Assumptions
+- Growth: ${(growth*100).toFixed(1)}%/yr
+- Inflation: ${(infl*100).toFixed(1)}%/yr
+
+3-Year Annualized Table
+${md}
+
+Year 1 Monthly Roll-Up
+${mdm}
+`;
+    }
+
+    return header + "(Unknown artifact type)\n";
+  }
+
+  function generateDraft(){
+    const type = document.getElementById("draft_type").value;
+    const txt = generateDraftText(type);
+    document.getElementById("draft_preview").textContent = txt;
+    document.getElementById("draft_sources").textContent = tierSourcesText();
+    showOk("Draft generated.");
+  }
+
+  async function copyDraft(){
+    const txt = document.getElementById("draft_preview").textContent || "";
+    try{ await navigator.clipboard.writeText(txt); showOk("Draft copied."); }
+    catch(e){ showOk("Copy not available; select text manually."); }
+  }
+
+  function downloadDraft(){
+    const txt = document.getElementById("draft_preview").textContent || "";
+    const blob = new Blob([txt], {type:"text/plain"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "cra_application_draft.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+</script>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function logln(s){ var log=$("proc_log"); if(log) log.textContent += s+"\n"; }
+  window.processFiles = window.processFiles || async function(){
+    var log=$("proc_log"); if(log) log.textContent="";
+    var inp=$("file_input"); if(!inp){ alert("Missing file input"); return; }
+    var files=Array.from(inp.files||[]);
+    if(!files.length){ logln("No files selected."); return; }
+    logln("Starting processing for "+files.length+" file(s)...");
+    // fall back to just listing files if original handler is missing
+    for(const f of files){ logln("Loaded: "+f.name); }
+    logln("Note: If parsing did not occur, your build may rely on blocked pdf.js. Use Assisted Mode evidence fields.");
+  };
+  var btn=$("btn_process");
+  if(btn){ btn.onclick = window.processFiles; }
+})();
+</script>
+
+
+<script>
+/* ===== Tab navigation hard-fix ===== */
+(function(){
+  window.setView = function(view){
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    const vv = document.getElementById("view_"+view);
+    if(vv) vv.classList.add("active");
+    document.querySelectorAll(".tabbtn").forEach(b=>b.classList.remove("active"));
+    const tb = document.getElementById("tab_"+view);
+    if(tb) tb.classList.add("active");
+  };
+
+  const map = [
+    ["tab_overview","overview"],
+    ["tab_t1","t1"],
+    ["tab_t2","t2"],
+    ["tab_t3","t3"],
+    ["tab_t4","t4"],
+    ["tab_t5","t5"],
+    ["tab_t6","t6"],
+    ["tab_drafts","drafts"]
+  ];
+  map.forEach(([id,view])=>{
+    const el = document.getElementById(id);
+    if(el){
+      el.onclick = ()=>window.setView(view);
+      // also ensure cursor shows
+      el.style.cursor = "pointer";
+    }
+  });
+})();
+</script>
+
+
+<script>
+/* ===== Post-processing hook: ensure Tier 1 scoring + UI refresh ===== */
+(function(){
+  function hasPdfJs(){ return !!window.pdfjsLib; }
+  function warn(msg){
+    const e = document.getElementById("errbar");
+    if(e){ e.style.display="block"; e.textContent = msg; }
+  }
+  function ok(msg){
+    const o = document.getElementById("okbar");
+    if(o){ o.style.display="block"; o.textContent = msg; }
+  }
+
+  // Warn if pdf.js missing (so user understands why auto-extract may be limited)
+  if(!hasPdfJs()){
+    warn("PDF auto-extraction library (pdf.js) did not load. You can still proceed in Assisted Mode: score rubric items manually and paste excerpts into evidence fields.");
+  }
+
+  // Wrap processFiles so it always triggers Tier 1 recalculation after it finishes.
+  const orig = window.processFiles;
+  if(typeof orig === "function"){
+    window.processFiles = async function(){
+      try{
+        await orig();
+      } catch(e){
+        console.error(e);
+        warn("Process Files failed: " + (e && e.message ? e.message : e));
+        return;
+      }
+      try{
+        if(typeof classifyDocs === "function") classifyDocs();
+        if(typeof prefillRubric === "function") prefillRubric();
+        if(typeof prefillAlignment === "function") prefillAlignment();
+        if(typeof scoreAll === "function") scoreAll();
+        // jump to Tier 1 after processing
+        if(typeof setView === "function") setView("t1");
+        ok("Tier 1 updated. Review scores, then proceed to Tier 2 and Tier 3.");
+      } catch(e){
+        console.error(e);
+        warn("Post-processing update failed: " + (e && e.message ? e.message : e));
+      }
+    };
+    // Re-bind process button onclick to wrapped function
+    const btn = document.getElementById("btn_process");
+    if(btn) btn.onclick = window.processFiles;
+  }
+})();
+</script>
+
+</body>
+</html>
