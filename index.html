@@ -170,17 +170,15 @@
     <div class="tabs" aria-label="Navigation tabs">
       <button class="tabbtn active" id="tab_t1" data-view="t1">Tier 1 — Assessment</button>
       <button class="tabbtn" id="tab_t2" data-view="t2">Tier 2 — CRA Readiness</button>
-      <button class="tabbtn" id="tab_t3" data-view="t3">Tier 3 — ROI & Break-even
+      <button class="tabbtn" id="tab_t3" data-view="t3">Tier 3 — ROI & Break-even</button>
       <button class="tabbtn" id="tab_t4" data-view="t4">Tier 4 — Implementation</button>
       <button class="tabbtn" id="tab_t5" data-view="t5">Tier 5 — Outcomes</button>
       <button class="tabbtn" id="tab_t6" data-view="t6">Tier 6 — Evaluation</button>
-</button>
       <button class="tabbtn" id="tab_drafts" data-view="drafts">Application Drafts</button>
 
       <div class="gate">
         <span class="chip"><span id="gateDot" class="dot"></span> <span id="gateText">Tier 3 locked until Tier 2 score ≥ 60</span></span>
       </div>
-</div>
     </div>
   </div>
 </header>
@@ -296,7 +294,54 @@
             </div>
           </div>
         </div>
-      </section>
+      
+        <div class="card" style="box-shadow:none; margin-top:12px;">
+          <div style="font-weight:900; margin-bottom:6px;">CHNA Quality & Compliance Gap Analysis (Tier 1 enhancement)</div>
+          <div class="small" style="margin-bottom:10px;">
+            This section scores uploaded CHNA / Implementation Strategy (IS) documents against commonly missing IRS documentation elements and the “written comments” community input requirement.
+            It is designed to address well-documented national gaps: missing documentation elements and low public-facing evidence of community input. 
+          </div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">CHNA documentation completeness</div>
+              <div class="value" id="kpi_chna_q">—</div>
+              <div class="hint" id="kpi_chna_q_hint">Based on 7 IRS CHNA documentation elements (0–100).</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Implementation Strategy completeness</div>
+              <div class="value" id="kpi_is_q">—</div>
+              <div class="hint">Based on 3 IRS IS elements (0–100).</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Written comments requirement</div>
+              <div class="value" id="kpi_input_req">—</div>
+              <div class="hint">Checks for: solicitation, ≥1 comment received, and how comments were used.</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Public availability signal</div>
+              <div class="value" id="kpi_public_avail">—</div>
+              <div class="hint">Heuristic: presence of “available on website”/“posted”/“public comment” language in uploaded files.</div>
+            </div>
+          </div>
+
+          <div class="split" style="margin-top:12px;">
+            <div style="overflow:auto;">
+              <table id="tbl_chna_gaps"></table>
+            </div>
+            <div>
+              <div class="callout">
+                <div style="font-weight:900;">Actionable remediation plan (auto-generated)</div>
+                <div class="small" id="chna_gap_recs" style="margin-top:6px;">Process documents to generate.</div>
+              </div>
+              <div class="callout" style="margin-top:10px;">
+                <div style="font-weight:900;">Evidence (traceability)</div>
+                <div class="small" style="margin-top:6px;">The table records the triggering snippet and page to speed CHNA/IS remediation edits.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+</section>
 
       <!-- Tier 2 -->
       <section id="view_t2" class="view">
@@ -451,11 +496,13 @@
           </div>
 
           <div class="kpis" style="margin-top:10px;">
-            <div class="kpi"><div class="label">Net Annual Benefit (base, Excel‑parity)</div><div class="value" id="o_net">—</div></div>
-            <div class="kpi"><div class="label">Coding uplift (optional)</div><div class="value" id="o_code">—</div></div>
-            <div class="kpi"><div class="label">Net benefit incl. coding uplift</div><div class="value" id="o_total_net">—</div></div>
-            <div class="kpi"><div class="label">ROI incl. coding uplift (x)</div><div class="value" id="o_roi">—</div></div>
-          </div>
+            <div class="kpi"><div class="label">Total program cost (transport + overhead)</div><div class="value" id="o_cost">—</div><div class="hint">Used for ROI denominator and lender-facing artifacts.</div></div>
+            <div class="kpi"><div class="label">Net Annual Benefit (base, Excel‑parity)</div><div class="value" id="o_net">—</div><div class="hint">Recovered margin minus program cost (no added fixed/startup costs).</div></div>
+            <div class="kpi"><div class="label">Coding uplift (optional)</div><div class="value" id="o_code">—</div><div class="hint">Optional incremental upside from documentation/coding capture.</div></div>
+            <div class="kpi"><div class="label">Net benefit incl. coding uplift</div><div class="value" id="o_total_net">—</div><div class="hint">Base net + coding uplift.</div></div>
+            <div class="kpi"><div class="label">ROI incl. coding uplift (x)</div><div class="value" id="o_roi">—</div><div class="hint">Net ÷ program cost.</div></div>
+            <div class="kpi"><div class="label">Break-even trip cost max</div><div class="value" id="o_tripmax">—</div><div class="hint">Net revenue per recovered visit minus marginal clinical cost.</div></div>
+          </div></div>
 
           <div class="split" style="margin-top:12px;">
             <div class="card" style="box-shadow:none;">
@@ -560,6 +607,8 @@
                 <option value="monitor_plan">Monitoring & Evidence Plan</option>
                 <option value="pnl">Borrower P&L Statement (Hospital)</option>
                 <option value="proforma_3yr">Project Pro Forma Budget (3-Year)</option>
+                <option value="lender_pnl_3yr">Lender-Facing P&L (3-Year, line-item)</option>
+                <option value="lender_proforma_3yr">Lender-Facing Pro Forma (3-Year, line-item)</option>
               </select>
               <div class="small" style="margin-top:6px;">Choose the document you want to generate. Everything is editable after download.</div>
             </div>
@@ -684,9 +733,9 @@
     findings: [], // Tier1: {id,key,disparity,segment,magnitude,prominence,concentration,score,recommend,evidenceRef}
     opportunities: [], // Tier2: {opp,kind,tests,criterion,strength,score,scope,checklist}
     selectedOpp: null,
-    transport: {overall:null, age6574:null}
-  ,
-    model: null
+    transport: {overall:null, age6574:null},
+    chnaEval: [], // per-doc CHNA/IS documentation + community input requirement checks
+    model: null // Tier 3 scenario cache for draft generator
   };
 
   // Disparities list (includes transportation explicitly)
@@ -820,6 +869,165 @@
         }
       }
     }
+  }
+
+
+  // ------------------------------
+  // Tier 1 enhancement: CHNA/IS documentation + community input requirement gap checks
+  // Based on common IRS documentation elements assessed in the literature and the 3-part written comments requirement.
+  // - CHNA documentation elements (7): community definition; methods; input from community; underserved populations described; prioritized needs; resources available; evaluation of impact.
+  // - Implementation strategy elements (3): actions for each need; resources and anticipated impact; planned collaborations.
+  // - Written comments requirement (3): solicitation method; ≥1 written comment received; explanation of how comments were taken into account.
+  // These checks are heuristic (keyword-based) and intended to speed a gap analysis / remediation workflow.
+  const CHNA_ELEMENTS = [
+    {id:"community_def", label:"Definition of community served + how determined", pats:["definition of the community","community served","service area","community definition","how the community was determined"]},
+    {id:"methods", label:"Process and methods used to conduct CHNA", pats:["methods","methodology","data sources","process used","approach","survey methodology","focus group"]},
+    {id:"input", label:"How input was solicited and taken into account (broad interests)", pats:["input from persons who represent","broad interests of the community","community input","stakeholder input","community representatives"]},
+    {id:"underserved", label:"Description of medically underserved / low-income / minority populations represented by input", pats:["medically underserved","low-income","minority populations","priority populations","vulnerable populations","underserved populations"]},
+    {id:"priorities", label:"Prioritized description of significant health needs", pats:["prioritized","priority health needs","significant health needs","ranked","top needs","prioritization"]},
+    {id:"resources", label:"Resources potentially available to address identified needs", pats:["resources available","available resources","community resources","assets","existing programs","capacity"]},
+    {id:"impact_eval", label:"Evaluation of impact since the immediately preceding CHNA", pats:["evaluation of impact","impact of actions","progress since","results since last","prior CHNA","evaluation since"]},
+  ];
+
+  const IS_ELEMENTS = [
+    {id:"is_actions", label:"Actions to address each health need", pats:["actions the hospital will take","strategy","interventions","action plan","will address"]},
+    {id:"is_resources_impact", label:"Resources devoted + anticipated impact", pats:["resources devoted","anticipated impact","budget","investment","expected impact","metrics"]},
+    {id:"is_collab", label:"Planned collaborations with other institutions", pats:["collaboration","partner","coalition","in partnership with","collaborate with","community partners"]},
+  ];
+
+  const WRITTEN_COMMENT_ELEMENTS = [
+    {id:"wc_solicit", label:"How written comments were solicited (most recent CHNA/IS)", pats:["written comments","public comment","comment period","solicit","feedback form","survey","web-based","paper survey","community forum","open house","telephone"]},
+    {id:"wc_received", label:"At least 1 written comment received", pats:["we received","comments were received","comment(s) received","written comment","responses received","feedback received"]},
+    {id:"wc_used", label:"How comments were taken into account in current CHNA/IS", pats:["taken into account","incorporated","informed","used to update","we considered","resulting changes","we adjusted","we revised"]},
+  ];
+
+  function _findSnippet(text, pat){
+    const idx = text.toLowerCase().indexOf(pat.toLowerCase());
+    if(idx < 0) return null;
+    const start = Math.max(0, idx-90);
+    const end = Math.min(text.length, idx+170);
+    return text.slice(start,end).replace(/\s+/g,' ').trim();
+  }
+
+  function evalDocForElements(doc){
+    const all = (doc.textByPage||[]).join(" \n");
+    const lower = all.toLowerCase();
+
+    const isCHNA = lower.includes("community health needs assessment") || lower.includes("chna");
+    const isIS = lower.includes("implementation strategy") || lower.includes("implementation plan") || lower.includes("implementation strategies");
+
+    // Public availability signal (heuristic)
+    const publicPats = ["available on our website","posted on our website","publicly available","public comment","comment period","available online"];
+    const publicHit = publicPats.find(p=>lower.includes(p.toLowerCase()));
+    const publicSnippet = publicHit ? _findSnippet(all, publicHit) : null;
+
+    function scoreBlock(block){
+      let hits = [];
+      for(const el of block){
+        let found = null;
+        for(const p of el.pats){
+          if(lower.includes(p.toLowerCase())){ found = p; break; }
+        }
+        const snippet = found ? _findSnippet(all, found) : null;
+        hits.push({id:el.id, label:el.label, present: !!found, trigger: found || "", snippet: snippet || ""});
+      }
+      const presentCount = hits.filter(h=>h.present).length;
+      const score = Math.round((presentCount / hits.length) * 100);
+      return {score, hits, presentCount, total:hits.length};
+    }
+
+    const chna = scoreBlock(CHNA_ELEMENTS);
+    const isb = scoreBlock(IS_ELEMENTS);
+    const wc = scoreBlock(WRITTEN_COMMENT_ELEMENTS);
+
+    const wcScore = wc.presentCount===3 ? 100 : (wc.presentCount===2 ? 67 : (wc.presentCount===1 ? 33 : 0));
+    const publicScore = publicHit ? 100 : 0;
+
+    return {
+      doc: doc.name,
+      isCHNA, isIS,
+      chnaScore: chna.score,
+      isScore: isb.score,
+      writtenCommentsScore: wcScore,
+      publicScore,
+      chnaHits: chna.hits,
+      isHits: isb.hits,
+      wcHits: wc.hits,
+      publicSnippet: publicSnippet || ""
+    };
+  }
+
+  function renderChnaGaps(){
+    const tbl = document.getElementById("tbl_chna_gaps");
+    if(!tbl) return;
+
+    if(!state.chnaEval || state.chnaEval.length===0){
+      tbl.innerHTML = "<tr><th>Document</th><th>CHNA score</th><th>IS score</th><th>Written comments</th><th>Public availability</th><th>Top gaps (auto)</th><th>Evidence</th></tr><tr><td colspan='7'>Process documents to populate.</td></tr>";
+      const rec = document.getElementById("chna_gap_recs");
+      if(rec) rec.textContent = "Process documents to generate.";
+      document.getElementById("kpi_chna_q").textContent = "—";
+      document.getElementById("kpi_is_q").textContent = "—";
+      document.getElementById("kpi_input_req").textContent = "—";
+      document.getElementById("kpi_public_avail").textContent = "—";
+      return;
+    }
+
+    // Aggregate KPIs across docs (take max score across docs, since some uploads may be partial excerpts)
+    const chnaMax = Math.max(...state.chnaEval.map(x=>x.chnaScore||0));
+    const isMax = Math.max(...state.chnaEval.map(x=>x.isScore||0));
+    const wcMax = Math.max(...state.chnaEval.map(x=>x.writtenCommentsScore||0));
+    const pubMax = Math.max(...state.chnaEval.map(x=>x.publicScore||0));
+
+    document.getElementById("kpi_chna_q").textContent = chnaMax + "/100";
+    document.getElementById("kpi_is_q").textContent = isMax + "/100";
+    document.getElementById("kpi_input_req").textContent = wcMax===100 ? "Meets (3/3)" : (wcMax===67 ? "Partial (2/3)" : (wcMax===33 ? "Weak (1/3)" : "Missing (0/3)"));
+    document.getElementById("kpi_public_avail").textContent = pubMax===100 ? "Detected" : "Not detected";
+
+    let html = "<tr><th>Document</th><th>CHNA score</th><th>IS score</th><th>Written comments</th><th>Public availability</th><th>Top gaps (auto)</th><th>Evidence</th></tr>";
+    const gapsAll = [];
+    for(const d of state.chnaEval){
+      const gaps = [];
+      // pick top 3 gaps across blocks
+      const miss = []
+        .concat(d.chnaHits.filter(h=>!h.present).map(h=>({label:h.label, snippet:h.snippet})))
+        .concat(d.isHits.filter(h=>!h.present).map(h=>({label:h.label, snippet:h.snippet})))
+        .concat(d.wcHits.filter(h=>!h.present).map(h=>({label:h.label, snippet:h.snippet})));
+
+      miss.slice(0,3).forEach(m=>gaps.push(m.label));
+      gapsAll.push(...gaps);
+
+      const ev = (d.publicSnippet ? `Public signal: ${d.publicSnippet}` : "") || (d.wcHits.find(h=>h.present && h.snippet)?.snippet || "") || (d.chnaHits.find(h=>h.present && h.snippet)?.snippet || "");
+      html += `<tr>
+        <td class="mono"><b>${escapeHtml(d.doc)}</b></td>
+        <td class="mono">${d.isCHNA ? (d.chnaScore + "/100") : "—"}</td>
+        <td class="mono">${d.isIS ? (d.isScore + "/100") : "—"}</td>
+        <td>${d.writtenCommentsScore===100 ? '<span class="badge b-strong">Meets (3/3)</span>' : (d.writtenCommentsScore>=67 ? '<span class="badge b-mod">Partial</span>' : '<span class="badge b-weak">Gap</span>')}</td>
+        <td>${d.publicScore===100 ? '<span class="badge b-strong">Detected</span>' : '<span class="badge b-weak">Not detected</span>'}</td>
+        <td>${escapeHtml(gaps.join("; ") || "—")}</td>
+        <td>${escapeHtml(ev || "—")}</td>
+      </tr>`;
+    }
+    tbl.innerHTML = html;
+
+    // Remediation recs
+    const rec = [];
+    const needsWritten = wcMax < 100;
+    if(needsWritten){
+      rec.push("Written comments compliance (3-part) is incomplete: add a documented solicitation method (paper + web + in-person options), confirm ≥1 written comment received, and explicitly state how comments changed priorities or strategies.");
+    }
+    if(chnaMax < 85){
+      rec.push("CHNA documentation gaps detected: ensure the CHNA explicitly includes (a) community definition and how it was determined, (b) methods/data sources, (c) who provided input and which underserved populations they represent, (d) prioritized needs, (e) resources available, and (f) evaluation of impact since the prior CHNA.");
+    }
+    if(isMax < 85){
+      rec.push("Implementation Strategy gaps detected: ensure the IS lists actions for each prioritized need, associated resources and anticipated impact, and planned collaborations/partners.");
+    }
+    if(pubMax < 100){
+      rec.push("Public availability signal not detected in the uploaded excerpts: ensure the CHNA and IS are clearly posted online and the document states where/how the public can access them.");
+    }
+    rec.push("Operationalizing fix: add a one-page ‘CHNA/IS Compliance Addendum’ template with these elements, then paste into the CHNA and IS PDFs for audit-ready completeness.");
+
+    const recEl = document.getElementById("chna_gap_recs");
+    if(recEl) recEl.textContent = rec.join(" ");
   }
 
   function computeMateriality(){
@@ -1037,6 +1245,9 @@
     }
     rec.push("Create a joint bank–hospital memo: (1) documented need, (2) target segment/geography, (3) CRA criterion satisfied, (4) documentation plan, (5) cost baseline and KPI monitoring.");
     document.getElementById("tier1_recs").textContent = rec.join(" ");
+
+    // Tier 1 enhancement: CHNA/IS gap analysis
+    if(typeof renderChnaGaps === "function") renderChnaGaps();
   }
 
   function renderEvidence(){
@@ -1103,11 +1314,13 @@
 
   function setTier3FromOpportunity(opp){
     if(!opp) return;
-    document.getElementById("inp_activity").value = opp.kind;
-    // Nudge parameters for NEMT: barrier share proxy from transport overall if present
+    // Tier 3 currently models the NEMT scenario. If transportation is selected, prefill a conservative transport-share proxy.
+    // (Keeps the existing Tier 3 ROI model intact.)
     if(opp.kind==="nmt" && state.transport.overall!=null){
-      const proxy = clamp(state.transport.overall*3.0, 5, 70);
-      document.getElementById("inp_share").value = proxy.toFixed(1);
+      // Map CHNA-reported transportation barrier (% with transport problems) into a conservative "share due to transportation" proxy.
+      const proxyPct = clamp(state.transport.overall*3.0, 5, 70); // heuristic: 2.7% -> ~8.1% (bounded)
+      const el = document.getElementById("a_share");
+      if(el) el.value = (proxyPct/100).toFixed(2); // accept decimal or percent; _normRate handles both
     }
   }
 
@@ -1345,7 +1558,7 @@ Generated: ${new Date().toISOString()}`;
 
   document.getElementById("btn_reset").addEventListener("click", ()=>{
     clearErr();
-    state.docs=[]; state.evidence=[]; state.findings=[]; state.opportunities=[]; state.selectedOpp=null;
+    state.docs=[]; state.evidence=[]; state.findings=[]; state.opportunities=[]; state.selectedOpp=null; state.chnaEval=[];
     state.transport={overall:null, age6574:null};
     document.getElementById("docs_count").textContent="0";
     document.getElementById("ev_count").textContent="0";
@@ -1353,6 +1566,8 @@ Generated: ${new Date().toISOString()}`;
     document.getElementById("tbl_materiality").innerHTML="";
     document.getElementById("tbl_evidence").innerHTML="";
     document.getElementById("tbl_cra").innerHTML="";
+    if(document.getElementById("tbl_chna_gaps")) document.getElementById("tbl_chna_gaps").innerHTML="";
+    if(document.getElementById("chna_gap_recs")) document.getElementById("chna_gap_recs").textContent="—";
     document.getElementById("audit_out").textContent="";
     if(chartMateriality) chartMateriality.destroy();
     if(chartROI) chartROI.destroy();
@@ -1370,10 +1585,11 @@ Generated: ${new Date().toISOString()}`;
       "Of patients surveyed, 7.5% reported food insecurity and 6% reported housing needs. " +
       "Unweighted count 61. Martin County ZIP 56031.";
     state.docs=[{name:"Demo_CHNA.pdf", type:"pdf", pages:1, textByPage:[demoText]}];
-    state.evidence=[]; state.findings=[]; state.opportunities=[]; state.selectedOpp=null;
+    state.evidence=[]; state.findings=[]; state.opportunities=[]; state.selectedOpp=null; state.chnaEval=[];
     state.transport={overall:null, age6574:null};
 
     scanDoc(state.docs[0]);
+    state.chnaEval = state.docs.map(evalDocForElements);
     computeMateriality();
     buildOpportunities();
     state.selectedOpp = state.opportunities[0] || null;
@@ -1395,7 +1611,7 @@ Generated: ${new Date().toISOString()}`;
       showErr("No files selected.");
       return;
     }
-    state.docs=[]; state.evidence=[]; state.findings=[]; state.opportunities=[]; state.selectedOpp=null;
+    state.docs=[]; state.evidence=[]; state.findings=[]; state.opportunities=[]; state.selectedOpp=null; state.chnaEval=[];
     state.transport={overall:null, age6574:null};
 
     for(const f of files){
@@ -1413,6 +1629,7 @@ Generated: ${new Date().toISOString()}`;
 
     // Scan
     for(const d of state.docs){ scanDoc(d); }
+    state.chnaEval = state.docs.map(evalDocForElements);
     computeMateriality();
     buildOpportunities();
     state.selectedOpp = state.opportunities[0] || null;
@@ -1438,13 +1655,19 @@ Generated: ${new Date().toISOString()}`;
     showOk("Tier 3 prefilled using top Tier 2 opportunity.");
   });
 
-  document.getElementById("btn_autofill").addEventListener("click", ()=>{
-    if(!state.selectedOpp) state.selectedOpp = state.opportunities[0] || null;
-    if(state.selectedOpp) setTier3FromOpportunity(state.selectedOpp);
+  const _btn_autofill = document.getElementById("btn_autofill");
+  if(_btn_autofill){
+    _btn_autofill.addEventListener("click", ()=>{
+      if(!state.selectedOpp) state.selectedOpp = state.opportunities[0] || null;
+      if(state.selectedOpp) setTier3FromOpportunity(state.selectedOpp);
+      showOk("Tier 3 auto-fill applied from Tier 2.");
+    });
+  }
     showOk("Tier 3 auto-fill applied from Tier 2.");
   });
 
-  document.getElementById("btn_run").addEventListener("click", runTier3);
+  const _btn_run = document.getElementById("btn_run");
+  if(_btn_run){ _btn_run.addEventListener("click", runTier3); }
   // Live UI: keep coverage readout updated
   const covEl = document.getElementById("inp_cov");
   const covRead = document.getElementById("cov_readout");
@@ -1459,6 +1682,9 @@ Generated: ${new Date().toISOString()}`;
   document.getElementById("tbl_materiality").innerHTML = "<tr><th>Disparity</th><th>Segment</th><th>Magnitude</th><th>Δ Concentration</th><th>Prominence</th><th>Score</th><th>Recommendation</th><th>Evidence</th></tr><tr><td colspan='8'>Upload documents and click Process Files.</td></tr>";
   document.getElementById("tbl_evidence").innerHTML = "<tr><th>Disparity</th><th>Snippet</th><th>Doc</th><th>Page</th></tr><tr><td colspan='4'>—</td></tr>";
   document.getElementById("tbl_cra").innerHTML = "<tr><th>Opportunity</th><th>CRA test mapping</th><th>Criterion satisfied</th><th>Strength</th><th>Score</th><th>Scope guidance</th><th>Application packet checklist</th></tr><tr><td colspan='7'>—</td></tr>";
+  if(document.getElementById("tbl_chna_gaps")) document.getElementById("tbl_chna_gaps").innerHTML = "<tr><th>Document</th><th>CHNA score</th><th>IS score</th><th>Written comments</th><th>Public availability</th><th>Top gaps (auto)</th><th>Evidence</th></tr><tr><td colspan=\"7\">—</td></tr>";
+  if(document.getElementById("chna_gap_recs")) document.getElementById("chna_gap_recs").textContent = "Upload CHNA/IS documents and click Process Files.";
+
   // initialize draft UI
   wireDraftUI();
 
@@ -1786,7 +2012,183 @@ Interpretation:
 `;
     }
 
-    // fallback
+    
+    if(draftType==="lender_pnl_3yr" || draftType==="lender_proforma_3yr"){
+      // Build a lender-facing, line-item 3-year package.
+      // Uses most recent Tier 3 ROI run when available; otherwise derives from current Tier 3 input fields.
+      let scen = null;
+      try{
+        if(state.model && state.model.outputs && state.model.inputs){
+          scen = {inp: state.model.inputs, out: state.model.outputs, cu: state.model.coding || {uplift:0, detail:""}, totalNet: (state.model.totalNet ?? (state.model.outputs.net_benefit + ((state.model.coding||{}).uplift||0)))};
+        }else{
+          const inp = roi_inputs();
+          const out = roi_calc(inp);
+          const cu = coding_uplift(out.prevented, inp.visits);
+          scen = {inp, out, cu, totalNet: (out.net_benefit + cu.uplift)};
+        }
+      }catch(e){
+        scen = null;
+      }
+
+      if(!scen){
+        return `${header}\nLender-facing financial artifacts unavailable: run Tier 3 ROI (or ensure Tier 3 inputs are present).\n`;
+      }
+
+      const growth = parseFloat((document.getElementById("draft_growth")?.value || "5"))/100;
+      const infl = parseFloat((document.getElementById("draft_infl")?.value || "3"))/100;
+
+      // Year 1 base (annualized) from ROI parity model
+      const y1 = {
+        recovered_visits: scen.out.prevented,
+        patient_service_revenue: scen.out.gross_rev,
+        quality_uplift: scen.cu?.uplift ? scen.cu.uplift : 0,
+        total_revenue: scen.out.gross_rev + (scen.cu?.uplift ? scen.cu.uplift : 0),
+        marginal_clinical_cost: scen.out.marginal_cost,
+        nmt_vendor_cost: scen.out.transport_cost,
+        admin_overhead_total: scen.out.overhead_cost,
+        total_program_cost: scen.out.total_program_cost,
+        net_contribution: (scen.out.gross_rev - scen.out.marginal_cost - scen.out.total_program_cost) + (scen.cu?.uplift ? scen.cu.uplift : 0)
+      };
+
+      // Overhead allocation (for line-item transparency; totals reconcile to ROI overhead)
+      const ohAlloc = [
+        {k:"Program management & operations", p:0.35},
+        {k:"Patient outreach, scheduling & confirmations", p:0.20},
+        {k:"Data, reporting & audit trail (CRA/CHNA)", p:0.18},
+        {k:"Compliance & legal / contracting", p:0.12},
+        {k:"Evaluation & continuous improvement", p:0.10},
+        {k:"IT/tools (workflow enablement)", p:0.05}
+      ];
+
+      function projectYear(base, yr){
+        const volF = Math.pow(1+growth, yr-1);
+        const costF = Math.pow(1+infl, yr-1);
+
+        const recovered = base.recovered_visits * volF;
+        const rev = base.patient_service_revenue * volF;
+        const qual = base.quality_uplift * volF; // conservative: tie to volume
+        const totRev = rev + qual;
+
+        const marg = base.marginal_clinical_cost * volF;
+        const nmt = base.nmt_vendor_cost * costF; // vendor cost inflation
+        const oh = base.admin_overhead_total * costF;
+        const prog = nmt + oh;
+
+        const net = (rev - marg - prog) + qual;
+
+        return {recovered, rev, qual, totRev, marg, nmt, oh, prog, net};
+      }
+
+      const y2 = projectYear(y1, 2);
+      const y3 = projectYear(y1, 3);
+
+      const table3 =
+`3-Year Summary (annual, $)
+| Line item | Year 1 | Year 2 | Year 3 |
+|---|---:|---:|---:|
+| Recovered visits enabled | ${Math.round(y1.recovered_visits).toLocaleString()} | ${Math.round(y2.recovered).toLocaleString()} | ${Math.round(y3.recovered).toLocaleString()} |
+| Patient service revenue (net) | ${fmtMoney(y1.patient_service_revenue)} | ${fmtMoney(y2.rev)} | ${fmtMoney(y3.rev)} |
+| Quality / coding uplift (optional) | ${fmtMoney(y1.quality_uplift)} | ${fmtMoney(y2.qual)} | ${fmtMoney(y3.qual)} |
+| **Total revenue** | **${fmtMoney(y1.total_revenue)}** | **${fmtMoney(y2.totRev)}** | **${fmtMoney(y3.totRev)}** |
+| Marginal clinical cost | ${fmtMoney(y1.marginal_clinical_cost)} | ${fmtMoney(y2.marg)} | ${fmtMoney(y3.marg)} |
+| NEMT vendor expense (variable) | ${fmtMoney(y1.nmt_vendor_cost)} | ${fmtMoney(y2.nmt)} | ${fmtMoney(y3.nmt)} |
+| Admin/overhead (allocated) | ${fmtMoney(y1.admin_overhead_total)} | ${fmtMoney(y2.oh)} | ${fmtMoney(y3.oh)} |
+| **Total program cost** | **${fmtMoney(y1.total_program_cost)}** | **${fmtMoney(y2.prog)}** | **${fmtMoney(y3.prog)}** |
+| **Net contribution (EBITDA-like)** | **${fmtMoney(y1.net_contribution)}** | **${fmtMoney(y2.net)}** | **${fmtMoney(y3.net)}** |
+`;
+
+      const overheadDetail = ohAlloc.map(a=>{
+        const v1 = y1.admin_overhead_total * a.p;
+        const v2 = y2.oh * a.p;
+        const v3 = y3.oh * a.p;
+        return `| ${a.k} | ${fmtMoney(v1)} | ${fmtMoney(v2)} | ${fmtMoney(v3)} |`;
+      }).join("\n");
+
+      const overheadTable =
+`Overhead detail (reconciles to ROI overhead; for lender transparency)
+| Overhead line item | Year 1 | Year 2 | Year 3 |
+|---|---:|---:|---:|
+${overheadDetail}
+| **Total allocated overhead** | **${fmtMoney(y1.admin_overhead_total)}** | **${fmtMoney(y2.oh)}** | **${fmtMoney(y3.oh)}** |
+`;
+
+      const assumptions =
+`Core assumptions (from Tier 3 inputs)
+- Annual targeted visits: ${Math.round(scen.inp.visits).toLocaleString()}
+- No-show rate: ${(scen.inp.noshow*100).toFixed(1)}%
+- Share due to transportation: ${(scen.inp.share*100).toFixed(1)}%
+- Mitigation (prevented share): ${(scen.inp.mitig*100).toFixed(1)}%
+- Net revenue per recovered visit: $${(scen.inp.netrev||0).toFixed(0)}
+- Marginal clinical cost per recovered visit: $${(scen.inp.margc||0).toFixed(0)}
+- Trip cost: $${(scen.inp.trip||0).toFixed(0)}  | Overhead rate: ${(scen.inp.over*100).toFixed(1)}%
+- Growth on recovered volume: ${(growth*100).toFixed(1)}%/yr  | Cost inflation: ${(infl*100).toFixed(1)}%/yr
+`;
+
+      if(draftType==="lender_pnl_3yr"){
+        return `${header}
+LENDER-FACING 3-YEAR P&L (Incremental Program Economics — Line-Item)
+
+Purpose
+This statement isolates incremental operating impact of a CRA-aligned access program on the hospital (borrower),
+using the dashboard ROI scenario as the Year 1 base and projecting Years 2–3 using the selected growth/inflation assumptions.
+
+${assumptions}
+
+${table3}
+
+${overheadTable}
+
+Lender notes (how to underwrite this)
+- Revenue line represents net patient service revenue recovered from prevented transportation-related no-shows.
+- Marginal clinical cost reflects variable clinical expense tied to recovered visits (not fully loaded fixed cost).
+- Program cost is variable with volume and vendor pricing; overhead is transparently allocated for governance, audit, and reporting.
+- Optional “quality/coding uplift” should be included only if documentation and coding governance controls are implemented (e.g., workflow prompts, QA sampling).
+
+Risk controls (what reduces variability)
+- Eligibility + ride-log documentation to minimize leakage and support CRA/CHNA defensibility.
+- Vendor SLA (on-time pickup, completion rate) + monthly variance review.
+- Audit-ready evidence pack (contracts, invoices, beneficiary counts, AA attribution).
+
+Generated: ${new Date().toISOString()}
+`;
+      }
+
+      // lender_proforma_3yr
+      const sourcesUses =
+`Sources & Uses (illustrative; editable)
+Sources:
+- Bank CRA contribution (annual): $${(scen.inp.bank||0).toLocaleString()}
+- Hospital contribution (annual): ${fmtMoney(Math.max(0, y1.total_program_cost - (scen.inp.bank||0)))}
+Uses:
+- NEMT vendor expense: ${fmtMoney(y1.nmt_vendor_cost)}
+- Program overhead (allocated): ${fmtMoney(y1.admin_overhead_total)}
+`;
+
+      return `${header}
+LENDER-FACING 3-YEAR PRO FORMA (Budget + Performance — Line-Item)
+
+Purpose
+This pro forma is structured as a lender-ready attachment: (1) clear assumptions, (2) line-item cost structure,
+(3) projected operating contribution, and (4) documentation / controls that reduce performance risk.
+
+${assumptions}
+
+${sourcesUses}
+
+${table3}
+
+${overheadTable}
+
+Performance monitoring (what the lender can request quarterly)
+- Volumes: rides delivered; recovered visits; cancellation/no-show rates.
+- Financial: program cost per recovered visit; net contribution; variance to pro forma.
+- Compliance: evidence completeness (contracts/invoices/ride logs/beneficiary counts); AA and LMI attribution checks.
+- Outcomes: appointment adherence trend; patient experience measures (optional).
+
+Generated: ${new Date().toISOString()}
+`;
+    }
+// fallback
     return `${header}\nNo draft type selected.\n`;
   }
 
@@ -1957,6 +2359,7 @@ ${notes ? "- Notes: " + notes : ""}`.trim();
     // Base KPI outputs (Excel parity)
     document.getElementById("o_net").textContent = "$" + out.net_benefit.toLocaleString(undefined,{maximumFractionDigits:0});
     document.getElementById("o_tripmax").textContent = "$" + out.be_trip_max.toFixed(0);
+    document.getElementById("o_cost").textContent = "$" + out.total_program_cost.toLocaleString(undefined,{maximumFractionDigits:0});
 
     // Coding uplift (optional)
     const cu = coding_uplift(out.prevented, inp.visits);
