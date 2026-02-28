@@ -37,6 +37,7 @@
     <button class="tabbtn" id="tab_t5" data-view="t5">Outcomes</button>
     <button class="tabbtn" id="tab_t6" data-view="t6">Evaluation</button>
     <button class="tabbtn" id="tab_drafts" data-view="drafts">Application Drafts</button>
+    <button class="tabbtn" id="tab_training" data-view="training" style="border-bottom-color:#f59e0b; color:#fbbf24;">🎓 Training Module</button>
   </div>
 </header>
 
@@ -351,6 +352,97 @@
             </div>
           </div>
 
+          <div class="hr"></div>
+
+          <!-- CCM/TCM Layer -->
+          <div class="callout" style="border-left-color: var(--blue);">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div>
+                <div class="tier-label" style="color:var(--blue);">Optional — Layer B</div>
+                <div class="section-title" style="font-size:14px;">CCM / TCM Capture Layer</div>
+                <div class="small" style="margin-top:4px;">
+                  Models incremental billing revenue from Chronic Care Management (CCM) and Transitional Care Management (TCM) when NEMT-enabled contact windows support non-face-to-face care management completion. <b>Time may not be double-counted across codes.</b>
+                </div>
+              </div>
+              <div class="chip" style="cursor:pointer;">
+                <span style="font-weight:700;">Enable</span>
+                <input id="toggle_ccm" type="checkbox" style="margin-left:8px; transform:scale(1.2); cursor:pointer;" />
+              </div>
+            </div>
+            <div id="ccm_box" style="display:none; margin-top:12px;">
+              <div style="background:rgba(220,38,38,.06); border:1px solid var(--red-border); border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:13px; color:var(--red); font-weight:600;">
+                ⚠️ Compliance guardrail: CCM/TCM time must be real, threshold-meeting, and non-duplicative across billed codes. Patient travel time is not billable. Always confirm with compliance before operationalizing.
+              </div>
+              <div class="section-title" style="font-size:13px; margin-bottom:8px;">CCM Inputs</div>
+              <div class="row">
+                <div class="field"><label>CCM-eligible patients</label><input id="ccm_patients" type="number" value="500"/></div>
+                <div class="field"><label>Enrollment/consent rate (%)</label><input id="ccm_enroll" type="number" value="40" step="1"/></div>
+                <div class="field"><label>Avg. billed months/patient-year</label><input id="ccm_months" type="number" value="8" step="1"/></div>
+                <div class="field"><label>Avg. allowed per patient-month ($)</label><input id="ccm_allowed" type="number" value="62" step="1"/></div>
+                <div class="field"><label>Billing success rate (%)</label><input id="ccm_success" type="number" value="85" step="1"/></div>
+                <div class="field"><label>Staff cost per minute ($)</label><input id="ccm_staff_rate" type="number" value="0.65" step="0.05"/></div>
+                <div class="field"><label>Staff minutes required per month</label><input id="ccm_minutes" type="number" value="20" step="5"/></div>
+              </div>
+              <div class="section-title" style="font-size:13px; margin-top:12px; margin-bottom:8px;">TCM Inputs</div>
+              <div class="row">
+                <div class="field"><label>Eligible discharges/year</label><input id="tcm_discharges" type="number" value="200"/></div>
+                <div class="field"><label>Reach/completion rate (%)</label><input id="tcm_reach" type="number" value="55" step="1"/></div>
+                <div class="field"><label>Share billed as 99496 (high MDM, 7-day) (%)</label><input id="tcm_high_share" type="number" value="35" step="1"/></div>
+                <div class="field"><label>Allowed — 99495 moderate MDM ($)</label><input id="tcm_allow_mod" type="number" value="215" step="1"/></div>
+                <div class="field"><label>Allowed — 99496 high MDM ($)</label><input id="tcm_allow_high" type="number" value="290" step="1"/></div>
+                <div class="field"><label>Billing success rate (%)</label><input id="tcm_success" type="number" value="82" step="1"/></div>
+                <div class="field"><label>Staff minutes per TCM episode</label><input id="tcm_minutes" type="number" value="45" step="5"/></div>
+                <div class="field"><label>Staff cost per minute ($)</label><input id="tcm_staff_rate" type="number" value="0.65" step="0.05"/></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <!-- VBC Quality Layer -->
+          <div class="callout" style="border-left-color: var(--green);">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div>
+                <div class="tier-label" style="color:var(--green);">Optional — Layer A</div>
+                <div class="section-title" style="font-size:14px;">VBC Quality Threshold Layer</div>
+                <div class="small" style="margin-top:4px;">
+                  Monetizes quality earn-back or bonus dollars when improved appointment completion enables measure closure under value-based contracts (e.g., diabetes glycemic status, BP control, post-discharge med rec, colorectal screening). <i>Requires a value-based contract with dollars at risk.</i>
+                </div>
+              </div>
+              <div class="chip" style="cursor:pointer;">
+                <span style="font-weight:700;">Enable</span>
+                <input id="toggle_vbc" type="checkbox" style="margin-left:8px; transform:scale(1.2); cursor:pointer;" />
+              </div>
+            </div>
+            <div id="vbc_box" style="display:none; margin-top:12px;">
+              <div class="row">
+                <div class="field">
+                  <label>Contract type</label>
+                  <select id="vbc_type">
+                    <option value="earnback">Withhold / linear earn-back (ACO-style)</option>
+                    <option value="cliff">Cliff / threshold bonus (Star Ratings-style)</option>
+                  </select>
+                </div>
+                <div class="field"><label>Dollars at risk in contract (total pool, $)</label><input id="vbc_at_risk" type="number" value="500000" step="1000"/></div>
+                <div class="field"><label>Baseline quality score (0&ndash;100)</label><input id="vbc_baseline" type="number" value="72" step="1"/></div>
+                <div class="field"><label>Projected quality score with NEMT (0&ndash;100)</label><input id="vbc_projected" type="number" value="79" step="1"/></div>
+              </div>
+              <div class="row" id="vbc_cliff_row" style="display:none;">
+                <div class="field"><label>Threshold score required for bonus</label><input id="vbc_threshold" type="number" value="75" step="1"/></div>
+                <div class="field"><label>Bonus amount if threshold met ($)</label><input id="vbc_bonus" type="number" value="150000" step="1000"/></div>
+              </div>
+              <div class="callout" style="margin-top:10px; background:var(--green-soft); border-left-color:var(--green);">
+                <div class="tier-label" style="color:var(--green);">Quality Measure Examples</div>
+                <div class="small" style="margin-top:4px;">
+                  <b>Diabetes Glycemic Status &gt;9%</b> (QPP Measure 001) — requires HbA1c/GMI classification; missed labs worsen performance.<br/>
+                  <b>Controlling High Blood Pressure</b> (Measure 236) — missed follow-ups reduce probability of documented control.<br/>
+                  <b>Colorectal Cancer Screening</b> (Measure 113) — missed PCP touchpoints reduce capture.<br/>
+                  <b>Transitions of Care / Med Rec</b> (Star Ratings) — post-discharge med rec requires a visit within 7/14 days.
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="btnbar" style="margin-top:16px;">
             <button class="primary" onclick="render_roi()">Run ROI Analysis</button>
           </div>
@@ -362,18 +454,34 @@
             <div class="kpi"><div class="label">Net Benefit (Total)</div><div class="value" id="o_total_net">&mdash;</div><div class="hint">Base net + coding uplift.</div></div>
             <div class="kpi"><div class="label">ROI (Total)</div><div class="value" id="o_roi">&mdash;</div><div class="hint">Net / program cost.</div></div>
             <div class="kpi"><div class="label">Break-even Trip Cost</div><div class="value" id="o_tripmax">&mdash;</div><div class="hint">Maximum viable trip cost.</div></div>
+            <div class="kpi" style="border-color:var(--blue-border); background:var(--blue-soft);"><div class="label" style="color:var(--blue);">CCM Net Revenue</div><div class="value" id="o_ccm_net" style="color:var(--blue);">&mdash;</div><div class="hint">Layer B: net CCM billing contribution.</div></div>
+            <div class="kpi" style="border-color:var(--blue-border); background:var(--blue-soft);"><div class="label" style="color:var(--blue);">TCM Net Revenue</div><div class="value" id="o_tcm_net" style="color:var(--blue);">&mdash;</div><div class="hint">Layer B: net TCM billing contribution.</div></div>
+            <div class="kpi" style="border-color:var(--green-border); background:var(--green-soft);"><div class="label" style="color:var(--green);">VBC Quality Earn-back</div><div class="value" id="o_vbc_earn" style="color:var(--green);">&mdash;</div><div class="hint">Layer A: incremental quality dollars earned.</div></div>
+            <div class="kpi" style="border-color:var(--green-border); background:var(--green-soft);"><div class="label" style="color:var(--green);">All-in Net Value</div><div class="value" id="o_allin" style="color:var(--green);">&mdash;</div><div class="hint">FFS + Coding + CCM/TCM + VBC earn-back.</div></div>
           </div>
         </div>
 
         <div class="split" style="margin-top:16px;">
           <div class="card-flat">
-            <div class="section-title" style="font-size:14px;">ROI Decomposition</div>
-            <canvas id="roi_bar" height="260"></canvas>
-            <div class="small" style="margin-top:8px;">Base ROI bars reflect Excel parity; coding uplift shown separately.</div>
+            <div class="section-title" style="font-size:14px;">ROI Waterfall — From Visits to Net Value</div>
+            <canvas id="roi_waterfall" height="260"></canvas>
+            <div class="small" style="margin-top:8px;">Base ROI bars reflect Excel parity. Optional layers shown in blue/green.</div>
           </div>
           <div class="card-flat">
+            <div class="section-title" style="font-size:14px;">All-Layers Value Stack</div>
+            <canvas id="roi_bar" height="260"></canvas>
+            <div class="small" style="margin-top:8px;">FFS base → Coding → CCM/TCM → VBC earn-back. Enable optional layers to populate.</div>
+          </div>
+        </div>
+
+        <div class="split" style="margin-top:16px;">
+          <div class="card-flat">
             <div class="section-title" style="font-size:14px;">CRA Impact Outputs</div>
-            <div id="cra_box" class="codebox" style="min-height:260px;">Run ROI analysis to populate outputs.</div>
+            <div id="cra_box" class="codebox" style="min-height:220px;">Run ROI analysis to populate outputs.</div>
+          </div>
+          <div class="card-flat">
+            <div class="section-title" style="font-size:14px;">CCM/TCM + VBC Detail</div>
+            <div id="extended_layers_box" class="codebox" style="min-height:220px;">Enable optional layers and run ROI to populate.</div>
           </div>
         </div>
 
@@ -551,6 +659,422 @@
         </div>
       </section>
 
+    </div>
+  </div>
+
+  <!-- ============================
+       Training Module (Full-width below grid)
+       ============================ -->
+  <div id="view_training" class="view" style="margin-top:24px;">
+    <div class="card" style="border-top:4px solid #f59e0b;">
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+        <div style="width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg,#f59e0b,#d97706); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">🎓</div>
+        <div>
+          <div class="tier-label" style="color:#d97706;">Executive Training Module</div>
+          <div class="section-title" style="font-size:20px;">NEMT ROI &amp; Healthcare Benefits: From FFS to Value-Based Care</div>
+          <div class="section-subtitle" style="margin-bottom:0;">A structured, case-based executive program. Five exercises with context, predictions, learner reflections, and expert analyses.</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+        <button class="ex-nav-btn active" data-ex="1" onclick="showExercise(1)">1: The FFS Case</button>
+        <button class="ex-nav-btn" data-ex="2" onclick="showExercise(2)">2: The Coding Layer</button>
+        <button class="ex-nav-btn" data-ex="3" onclick="showExercise(3)">3: CCM/TCM Capture</button>
+        <button class="ex-nav-btn" data-ex="4" onclick="showExercise(4)">4: VBC Quality Threshold</button>
+        <button class="ex-nav-btn" data-ex="5" onclick="showExercise(5)">5: Full Board Case</button>
+      </div>
+
+      <!-- Exercise 1 -->
+      <div class="training-exercise active" id="ex_1">
+        <div class="ex-header">
+          <span class="ex-number">01</span>
+          <div>
+            <div class="ex-title">The FFS Contribution Margin Case</div>
+            <div class="ex-subtitle">Foundation — Understanding the base model before adding complexity</div>
+          </div>
+        </div>
+
+        <div class="ex-section ex-context">
+          <div class="ex-section-label">📋 Context</div>
+          <p>You are the CFO of a 450-bed regional health system. Your ambulatory division schedules <strong>40,000 outpatient visits/year</strong> with a <strong>20% overall no-show rate</strong>. Staff coding revealed transportation barriers account for <strong>30% of missed appointments</strong>—consistent with national LMI population estimates.</p>
+          <p>A county transit authority proposes co-sponsoring an NEMT pilot at <strong>$60/round trip</strong> (10% overhead), with an estimated <strong>50% mitigation rate</strong>. A community bank has committed $50,000 in CRA-eligible funding. Net revenue per kept visit: <strong>$225</strong>. Marginal clinical cost: <strong>$90</strong>. LMI share: 90%. All trips are within the CRA Assessment Area.</p>
+          <div class="ex-evidence-box">
+            <div class="ex-evidence-label">📚 Evidence Anchor</div>
+            <em>"Transportation barriers are a well-documented driver of missed care, delayed care, and poorer chronic disease management—making transportation a direct lever for both revenue recovery and quality performance."</em>
+            <span style="display:block; font-size:12px; color:var(--muted); margin-top:4px;">CMS VBID Transportation Use Case (CY2023) + NEMT systematic meta-analysis (PMC9026972)</span>
+          </div>
+        </div>
+
+        <div class="ex-section ex-prediction">
+          <div class="ex-section-label">🔮 Prediction Challenge</div>
+          <p><strong>Before calculating — predict the expected first-year net benefit from this NEMT pilot:</strong></p>
+          <div class="prediction-options" id="pred_1">
+            <div class="pred-option" onclick="selectPred(1,'a')">A. ~$40,000–$60,000 — modest positive, breakeven territory</div>
+            <div class="pred-option" onclick="selectPred(1,'b')">B. ~$80,000–$90,000 — meaningful positive, ROI slightly above 1×</div>
+            <div class="pred-option" onclick="selectPred(1,'c')">C. ~$150,000–$200,000 — strong positive, ROI above 2×</div>
+            <div class="pred-option" onclick="selectPred(1,'d')">D. Negative — trip costs exceed recovered margin</div>
+          </div>
+          <div class="pred-reveal" id="pred_reveal_1" style="display:none;">
+            <div class="pred-correct">✓ Correct answer: B — approximately $82,800 net benefit, ROI ≈ 1.05×</div>
+            <div class="pred-explanation">
+              Transport no-shows = 40,000 × 0.20 × 0.30 = <strong>2,400</strong><br/>
+              Prevented = 2,400 × 0.50 = <strong>1,200 visits</strong><br/>
+              Gross revenue = 1,200 × $225 = <strong>$270,000</strong><br/>
+              Marginal cost = 1,200 × $90 = <strong>$108,000</strong><br/>
+              Transport cost = 1,200 × $60 = $72,000 + overhead $7,200 = <strong>$79,200</strong><br/>
+              Net benefit = $270,000 − $108,000 − $79,200 = <strong>$82,800</strong>
+            </div>
+          </div>
+          <button class="reveal-btn" onclick="toggleReveal('pred_reveal_1')">Reveal Answer &amp; Calculation</button>
+        </div>
+
+        <div class="ex-section ex-reflection">
+          <div class="ex-section-label">🪞 Learner Reflection</div>
+          <ul class="ex-list">
+            <li>What assumption drives the most uncertainty — mitigation rate, trip cost, or no-show rate? Why?</li>
+            <li>At what trip cost does this program break even? How would you use that figure in vendor negotiations?</li>
+            <li>A 1.05× ROI may disappoint a board used to higher returns. How do you frame this as a platform investment, not just a financial return?</li>
+            <li>Why use <em>marginal</em> clinical cost rather than fully-loaded cost? What would happen to the ROI if you switched?</li>
+          </ul>
+          <textarea class="ref-textarea" placeholder="Enter your reflection notes (stored in session)..." id="ref_1" rows="4"></textarea>
+        </div>
+
+        <div class="ex-section ex-expert">
+          <div class="ex-section-label">🏛️ Expert Analysis</div>
+          <div class="expert-content">
+            <p><strong>The FFS contribution margin ROI is conservative by design.</strong> The $82,800 net benefit represents only <em>direct financial recovery</em> from prevented no-shows—it excludes chronic disease management effects, care management billing, and quality performance value. This is the floor, not the ceiling.</p>
+            <p><strong>Break-even:</strong> Maximum viable trip cost = net revenue − marginal cost = $225 − $90 = <strong>$135/trip</strong>. Your $60 trip provides $75 of headroom—a powerful vendor negotiating position and a clear "scale ceiling" for program expansion.</p>
+            <p><strong>Board framing:</strong> A 1.05× FFS ROI growing to 1.2–1.4× by Year 3 (efficiency gains + volume) is a compelling platform story when CCM/TCM and VBC layers are added. Present it as a foundation investment. The FFS layer alone is positive; the full investment case is substantially stronger.</p>
+            <p><strong>Marginal vs. fully-loaded cost:</strong> Fully-loaded cost ($180–$220/visit for a typical FQHC) would make the ROI negative—but this would be economically misleading. Existing clinical capacity is not newly purchased for recovered visits. The marginal cost model reflects actual incremental financial impact, which is the correct decision-making lens.</p>
+            <div class="expert-cite">
+              <strong>Nuance:</strong> The Chaiyachati (2018) pragmatic rideshare trial found no significant reduction in no-shows due to low uptake. Program design, patient engagement, and eligibility targeting matter as much as the financial model.
+            </div>
+          </div>
+        </div>
+
+        <div class="ex-nav-footer">
+          <button onclick="showExercise(2)" class="primary">Next: Exercise 2 — The Coding Layer →</button>
+        </div>
+      </div>
+
+      <!-- Exercise 2 -->
+      <div class="training-exercise" id="ex_2">
+        <div class="ex-header">
+          <span class="ex-number">02</span>
+          <div>
+            <div class="ex-title">The Coding &amp; Documentation Layer</div>
+            <div class="ex-subtitle">Z-codes, CPT capture, and incremental documentation value</div>
+          </div>
+        </div>
+
+        <div class="ex-section ex-context">
+          <div class="ex-section-label">📋 Context</div>
+          <p>Building on Exercise 1: your 1,200 recovered visits create an opportunity. Your informatics team proposes systematic <strong>SDOH Z-code screening</strong> (Z75.3 — transportation barrier) for NEMT-enabled patients at point of care. Estimated <strong>25% Z-code capture rate</strong> among recovered visits (conservative), with <strong>$20 average reimbursement uplift</strong> per Z-coded encounter. Separately, a <strong>CPT-level coding improvement</strong> reaches 15% of recovered visits at <strong>$15 uplift</strong> each.</p>
+          <p>Your coding director confirms: ICD-10-CM Z-codes for social determinants have been reportable as additional diagnoses since 2016. Some payers now incorporate SDOH documentation into quality incentive programs.</p>
+        </div>
+
+        <div class="ex-section ex-prediction">
+          <div class="ex-section-label">🔮 Prediction Challenge</div>
+          <p><strong>Predict the combined coding uplift from these two documentation improvements:</strong></p>
+          <div class="prediction-options" id="pred_2">
+            <div class="pred-option" onclick="selectPred(2,'a')">A. Under $5,000 — too conservative to matter</div>
+            <div class="pred-option" onclick="selectPred(2,'b')">B. $6,000–$10,000 — meaningful but small relative to FFS base</div>
+            <div class="pred-option" onclick="selectPred(2,'c')">C. $12,000–$15,000 — noteworthy secondary revenue</div>
+            <div class="pred-option" onclick="selectPred(2,'d')">D. Over $20,000 — significant relative to program cost</div>
+          </div>
+          <div class="pred-reveal" id="pred_reveal_2" style="display:none;">
+            <div class="pred-correct">✓ Correct: B — approximately $8,700 combined uplift</div>
+            <div class="pred-explanation">
+              Z-code uplift = 1,200 × 25% × $20 = <strong>$6,000</strong><br/>
+              CPT uplift = 1,200 × 15% × $15 = <strong>$2,700</strong><br/>
+              Total coding uplift = <strong>$8,700</strong><br/>
+              Combined net (FFS + coding) = $82,800 + $8,700 = <strong>$91,500</strong> | ROI = <strong>1.15×</strong>
+            </div>
+          </div>
+          <button class="reveal-btn" onclick="toggleReveal('pred_reveal_2')">Reveal Answer</button>
+        </div>
+
+        <div class="ex-section ex-reflection">
+          <div class="ex-section-label">🪞 Learner Reflection</div>
+          <ul class="ex-list">
+            <li>$8,700 is ~11% of your FFS net benefit. Is this worth the workflow investment for consistent Z-code documentation?</li>
+            <li>What governance and QA processes ensure Z-code documentation is accurate and audit-ready?</li>
+            <li>Your compliance team flags that CPT content is AMA-licensed IP. How does this affect your training platform and documentation tools?</li>
+            <li>Z-code documentation has value beyond reimbursement. Name two non-financial benefits of capturing SDOH barriers systematically in your EHR.</li>
+          </ul>
+          <textarea class="ref-textarea" placeholder="Enter your reflection notes..." id="ref_2" rows="4"></textarea>
+        </div>
+
+        <div class="ex-section ex-expert">
+          <div class="ex-section-label">🏛️ Expert Analysis</div>
+          <div class="expert-content">
+            <p><strong>The coding layer is additive but requires discipline.</strong> $8,700 in this scenario is modest in dollars, but the organizational habit—screening for SDOH barriers, documenting consistently, linking to care response—has compounding value beyond reimbursement.</p>
+            <p><strong>Non-financial benefits:</strong> (1) Z-code documentation creates a population health registry of patients with transportation barriers, enabling proactive outreach. (2) Systematic SDOH documentation supports CHNA evidence requirements (IRS Schedule H) and CRA defensibility—both central to this platform's regulatory use case.</p>
+            <p><strong>CPT licensing:</strong> AMA holds CPT copyright. Reference CMS MLN documents (which reproduce allowable CPT content under federal government license) rather than raw CPT descriptors when building training platforms or documentation tools.</p>
+            <p><strong>High-performing programs:</strong> A 25% Z-code capture rate is deliberately conservative. Programs with EHR workflow integration and staff training report 60–80% capture rates. At 60%, Z-code uplift alone reaches $14,400—and the SDOH registry value becomes proportionally larger.</p>
+          </div>
+        </div>
+
+        <div class="ex-nav-footer">
+          <button onclick="showExercise(1)" style="margin-right:8px;">← Previous</button>
+          <button onclick="showExercise(3)" class="primary">Next: Exercise 3 — CCM/TCM Capture →</button>
+        </div>
+      </div>
+
+      <!-- Exercise 3 -->
+      <div class="training-exercise" id="ex_3">
+        <div class="ex-header">
+          <span class="ex-number">03</span>
+          <div>
+            <div class="ex-title">CCM / TCM Capture via NEMT-Enabled Contact Windows</div>
+            <div class="ex-subtitle">Turning ride time into care management completion — compliantly</div>
+          </div>
+        </div>
+
+        <div class="ex-section ex-context">
+          <div class="ex-section-label">📋 Context</div>
+          <p><strong>CCM:</strong> Of your 40,000 annual visits, <strong>500 patients</strong> have 2+ chronic conditions qualifying for CCM. Current enrollment rate: <strong>40%</strong>. Clinical staff struggle with the 20-minute monthly non-face-to-face threshold—patients are hard to reach between visits. The NEMT program creates reliable contact windows. Enrolled patients average <strong>8 billed months/year</strong> at <strong>$62 allowed/month</strong>, 85% billing success rate. Staff: $0.65/min, 20 min/month required.</p>
+          <p><strong>TCM:</strong> Your system discharges <strong>200 TCM-eligible patients/year</strong>. Current follow-up completion rate: <strong>55%</strong> (many lack transportation for the required post-discharge visit). With NEMT: 35% qualify for 99496 (high MDM, 7-day, ~$290 allowed), 65% for 99495 (moderate MDM, 14-day, ~$215 allowed). Billing success: 82%. Staff: $0.65/min, 45 min/episode.</p>
+          <div class="ex-evidence-box">
+            <div class="ex-evidence-label">📚 CMS Policy Anchor</div>
+            <em>"CCM is non-face-to-face, time-based, and can be furnished by clinical staff incident-to. TCM requires interactive contact within 2 business days of discharge and face-to-face within 7 days (99496) or 14 days (99495)."</em>
+            <span style="display:block; font-size:12px; color:var(--muted); margin-top:4px;">CMS MLN Chronic Care Management + Transitional Care Management booklets</span>
+          </div>
+          <div style="background:var(--red-soft); border:1px solid var(--red-border); border-radius:8px; padding:10px 14px; margin-top:12px; font-size:13px; color:var(--red); font-weight:600;">
+            ⚠️ CCM/TCM time must be real, threshold-meeting, and non-duplicative across billed codes. Patient travel time is not billable.
+          </div>
+        </div>
+
+        <div class="ex-section ex-prediction">
+          <div class="ex-section-label">🔮 Prediction Challenge</div>
+          <p><strong>Estimate the combined net CCM + TCM contribution from this program:</strong></p>
+          <div class="prediction-options" id="pred_3">
+            <div class="pred-option" onclick="selectPred(3,'a')">A. Under $10,000 — billing complexity makes it marginal</div>
+            <div class="pred-option" onclick="selectPred(3,'b')">B. $10,000–$25,000 — meaningful add-on</div>
+            <div class="pred-option" onclick="selectPred(3,'c')">C. $25,000–$60,000 — substantial secondary revenue stream</div>
+            <div class="pred-option" onclick="selectPred(3,'d')">D. Over $60,000 — larger than the FFS improvement</div>
+          </div>
+          <div class="pred-reveal" id="pred_reveal_3" style="display:none;">
+            <div class="pred-correct">✓ Correct: C — approximately $67K CCM gross, $19K TCM; net ~$66K + $19K with labor deducted</div>
+            <div class="pred-explanation">
+              <strong>CCM:</strong> Enrolled = 500 × 40% = 200 | Billed months = 200 × 8 × 85% = 1,360<br/>
+              Gross CCM = 1,360 × $62 = $84,320 | Labor = 1,360 × 20 × $0.65 = $17,680<br/>
+              Net CCM = <strong>$66,640</strong> (full program; incremental attribution ~40–50%)<br/><br/>
+              <strong>TCM:</strong> Billable = 200 × 55% × 82% ≈ 90 episodes<br/>
+              Revenue = 90 × (35% × $290 + 65% × $215) = 90 × $240 = $21,600<br/>
+              Labor = 90 × 45 × $0.65 = $2,633 | Net TCM ≈ <strong>$18,967</strong>
+            </div>
+          </div>
+          <button class="reveal-btn" onclick="toggleReveal('pred_reveal_3')">Reveal Answer &amp; Compliance Notes</button>
+        </div>
+
+        <div class="ex-section ex-reflection">
+          <div class="ex-section-label">🪞 Learner Reflection</div>
+          <ul class="ex-list">
+            <li>Walk through the TCM 2-business-day contact workflow. Who makes the call? What's documented? What if Day 2 is a weekend?</li>
+            <li>Why is "incremental CCM attribution" important? If enrollment was already at 40%, what portion is truly attributable to NEMT?</li>
+            <li>Design a documentation protocol that prevents double-counting CCM time against other billed codes in the same month.</li>
+            <li>For TCM: what is the patient experience implication of ensuring the face-to-face visit happens within 7 days of discharge?</li>
+          </ul>
+          <textarea class="ref-textarea" placeholder="Enter your reflection notes..." id="ref_3" rows="4"></textarea>
+        </div>
+
+        <div class="ex-section ex-expert">
+          <div class="ex-section-label">🏛️ Expert Analysis</div>
+          <div class="expert-content">
+            <p><strong>CCM and TCM are powerful but require genuine operational infrastructure.</strong> The compliance requirements are non-negotiable: time must be real, documented, threshold-meeting, and non-duplicative. The NEMT-CCM strategy is operational — the reliable contact created by rides enables genuine clinical staff time (med reconciliation, care plan review, care coordination). The ride creates the window; the clinical work fills it.</p>
+            <p><strong>TCM aligns naturally:</strong> The 7/14-day face-to-face window is exactly where transportation barriers cause harm. A patient discharged Friday afternoon without transportation misses the 7-day window. Evidence (PMC12587199) shows TCM follow-up visits associated with decreased 30-day readmissions — the NEMT → TCM chain carries downstream readmission avoidance value beyond TCM billing alone.</p>
+            <p><strong>Incremental attribution:</strong> Be explicit. "Our CCM enrollment was already 40%. The NEMT contribution is the incremental patients enrolled and months billed <em>because</em> the contact window enabled consistent threshold completion." This is the honest, defensible number for CFO reporting.</p>
+          </div>
+        </div>
+
+        <div class="ex-nav-footer">
+          <button onclick="showExercise(2)" style="margin-right:8px;">← Previous</button>
+          <button onclick="showExercise(4)" class="primary">Next: Exercise 4 — VBC Quality Threshold →</button>
+        </div>
+      </div>
+
+      <!-- Exercise 4 -->
+      <div class="training-exercise" id="ex_4">
+        <div class="ex-header">
+          <span class="ex-number">04</span>
+          <div>
+            <div class="ex-title">The VBC Quality Threshold Layer</div>
+            <div class="ex-subtitle">When kept appointments become measurable quality dollars</div>
+          </div>
+        </div>
+
+        <div class="ex-section ex-context">
+          <div class="ex-section-label">📋 Context</div>
+          <p>Your health system participates in ACO REACH. CMS has structured a <strong>quality withhold of $500,000</strong>. Your baseline quality score: <strong>72/100</strong>. Quality improvement projects that if NEMT-enabled appointment completion improves adherence to four key measures, your composite could reach <strong>79/100</strong>.</p>
+          <p>The four measures affected by missed appointments: <em>Diabetes Glycemic Status &gt;9%</em> (QPP Measure 001), <em>Controlling High Blood Pressure</em> (Measure 236), <em>Colorectal Cancer Screening</em> (Measure 113), and <em>Transitions of Care/Medication Reconciliation</em> (Star Ratings). Each requires a completed clinical encounter within a measurement window.</p>
+          <p>Contract uses a <strong>linear earn-back model</strong>: quality score maps linearly to withhold recovery across the 100-point scale.</p>
+          <div class="ex-evidence-box">
+            <div class="ex-evidence-label">📚 VBC Policy Anchors</div>
+            <em>"In ACO REACH, CMS applies a quality withhold earned back based on a total quality score."</em>
+            <span style="display:block; font-size:12px; color:var(--muted); margin-top:4px;">CMS ACO REACH PY 2026 Model Update Quick Reference + QPP Measure Specifications</span>
+          </div>
+        </div>
+
+        <div class="ex-section ex-prediction">
+          <div class="ex-section-label">🔮 Prediction Challenge</div>
+          <p><strong>What is the incremental quality earn-back from a 7-point quality score improvement on a $500,000 withhold pool?</strong></p>
+          <div class="prediction-options" id="pred_4">
+            <div class="pred-option" onclick="selectPred(4,'a')">A. $7,000 — 1% of pool per point</div>
+            <div class="pred-option" onclick="selectPred(4,'b')">B. $35,000 — proportional linear recovery</div>
+            <div class="pred-option" onclick="selectPred(4,'c')">C. $50,000 — threshold step-up bonus</div>
+            <div class="pred-option" onclick="selectPred(4,'d')">D. Cannot be calculated without the contract floor and ceiling</div>
+          </div>
+          <div class="pred-reveal" id="pred_reveal_4" style="display:none;">
+            <div class="pred-correct">✓ Correct: B — $35,000 (linear); D is also defensible</div>
+            <div class="pred-explanation">
+              Linear earn-back: Incremental = (79 − 72) / 100 × $500,000 = 7% × $500,000 = <strong>$35,000</strong><br/><br/>
+              D is valid: real contracts have floors, ceilings, and non-linear steps. ACO REACH earn-back methodology is more complex; this exercise uses a simplified linear model for pedagogical clarity.
+            </div>
+          </div>
+          <button class="reveal-btn" onclick="toggleReveal('pred_reveal_4')">Reveal Answer</button>
+        </div>
+
+        <div class="ex-section ex-reflection">
+          <div class="ex-section-label">🪞 Learner Reflection</div>
+          <ul class="ex-list">
+            <li>The "quality-threshold bridge" says missed visits reduce both (1) opportunities to deliver care and (2) opportunities to document it measure-countably. Why does documentation matter independently in a VBC model?</li>
+            <li>If your contract uses a cliff model ($150K bonus only if you cross the 75-point threshold), how does this change the analysis for a 3-point vs. 7-point improvement?</li>
+            <li>You can't definitively attribute the 7-point improvement entirely to NEMT. Design a study to isolate NEMT's contribution to quality performance.</li>
+            <li>Name one measure where NEMT impact is direct and high-confidence, and one where attribution is uncertain.</li>
+          </ul>
+          <textarea class="ref-textarea" placeholder="Enter your reflection notes..." id="ref_4" rows="4"></textarea>
+        </div>
+
+        <div class="ex-section ex-expert">
+          <div class="ex-section-label">🏛️ Expert Analysis</div>
+          <div class="expert-content">
+            <p><strong>The quality layer is the most strategically significant but hardest to attribute.</strong> $35,000 in earn-back is compelling, but requires two defensible claims: (1) quality score improved, and (2) NEMT contributed meaningfully.</p>
+            <p><strong>High-confidence attribution — Transitions of Care:</strong> NEMT → face-to-face visit → medication reconciliation documented → Star measure potentially closed. This is the highest-confidence chain. A 55% → 75% TCM completion rate directly traces to a measurable quality outcome.</p>
+            <p><strong>Lower-confidence — Diabetes glycemic status:</strong> A kept appointment enables an HbA1c draw, which is necessary but not sufficient. The draw must be ordered, performed, and below threshold in the measurement period. NEMT improves probability at each step but doesn't guarantee closure.</p>
+            <p><strong>Cliff vs. linear:</strong> In a cliff model, 72 → 74.9 earns $0; 74.9 → 75.1 earns $150,000. This creates extremely high marginal ROI near thresholds—making NEMT a strategically critical investment in the right contract year. Always model both structures for leadership.</p>
+          </div>
+        </div>
+
+        <div class="ex-nav-footer">
+          <button onclick="showExercise(3)" style="margin-right:8px;">← Previous</button>
+          <button onclick="showExercise(5)" class="primary">Next: Exercise 5 — The Full Board Case →</button>
+        </div>
+      </div>
+
+      <!-- Exercise 5 -->
+      <div class="training-exercise" id="ex_5">
+        <div class="ex-header">
+          <span class="ex-number">05</span>
+          <div>
+            <div class="ex-title">The All-In ROI Decision: Making the Board Case</div>
+            <div class="ex-subtitle">Synthesis — integrating all four layers into an executive recommendation</div>
+          </div>
+        </div>
+
+        <div class="ex-section ex-context">
+          <div class="ex-section-label">📋 Context</div>
+          <p>You present to the board finance committee. The pilot costs $79,200 in program cost. The bank CRA partner has committed $50,000 — reducing your net cash outlay to <strong>$29,200</strong>. You have now modeled all four value layers:</p>
+          <div style="background:var(--bg-warm); border-radius:10px; padding:14px; margin-top:10px; overflow-x:auto;">
+            <table style="width:100%; font-size:13px; min-width:480px;">
+              <tr><th style="text-align:left;">Value Layer</th><th style="text-align:right;">Annual Value</th><th style="text-align:left; padding-left:12px;">Attribution Confidence</th></tr>
+              <tr><td>FFS base — recovered contribution margin</td><td style="text-align:right;"><strong>$82,800</strong></td><td style="padding-left:12px; color:var(--green);">High — direct calculation</td></tr>
+              <tr><td>Coding uplift (Z-codes + CPT capture)</td><td style="text-align:right;">$8,700</td><td style="padding-left:12px; color:var(--amber);">Medium — requires workflow</td></tr>
+              <tr><td>CCM net contribution (incremental ~40%)</td><td style="text-align:right;">$26,656</td><td style="padding-left:12px; color:var(--amber);">Medium — requires enrollment lift</td></tr>
+              <tr><td>TCM net contribution</td><td style="text-align:right;">$18,967</td><td style="padding-left:12px; color:var(--green);">High — completion directly enabled</td></tr>
+              <tr><td>VBC quality earn-back (linear, 7 pts)</td><td style="text-align:right;">$35,000</td><td style="padding-left:12px; color:var(--amber);">Low-medium — attribution model req'd</td></tr>
+              <tr style="border-top:2px solid var(--border); font-weight:700;"><td>Total all-in value</td><td style="text-align:right;"><strong>$172,123</strong></td><td></td></tr>
+              <tr><td style="color:var(--muted);">Less: Total program cost</td><td style="text-align:right; color:var(--red);">($79,200)</td><td></td></tr>
+              <tr><td style="color:var(--muted);">Bank CRA contribution offset</td><td style="text-align:right; color:var(--green);">+$50,000</td><td></td></tr>
+              <tr style="font-weight:700; color:var(--green);"><td>Net value to health system</td><td style="text-align:right;"><strong>$142,923</strong></td><td></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="ex-section ex-prediction">
+          <div class="ex-section-label">🔮 Prediction Challenge</div>
+          <p><strong>The board asks: "What is the all-in ROI on our net cash outlay of $29,200?"</strong></p>
+          <div class="prediction-options" id="pred_5">
+            <div class="pred-option" onclick="selectPred(5,'a')">A. ~2.8× — good but not exceptional</div>
+            <div class="pred-option" onclick="selectPred(5,'b')">B. ~4.9× — strong return on total program cost basis</div>
+            <div class="pred-option" onclick="selectPred(5,'c')">C. ~4.9× net outlay; ROI on program cost = 1.17× base only</div>
+            <div class="pred-option" onclick="selectPred(5,'d')">D. The ROI calculation is misleading without knowing which layers are truly incremental</div>
+          </div>
+          <div class="pred-reveal" id="pred_reveal_5" style="display:none;">
+            <div class="pred-correct">✓ C and D are both defensible — here's the full picture</div>
+            <div class="pred-explanation">
+              <strong>All-in net on program cost:</strong> $172,123 − $79,200 = $92,923 net | ROI = $92,923 / $79,200 = <strong>1.17×</strong><br/>
+              <strong>On net cash outlay:</strong> Net value $142,923 / net outlay $29,200 = <strong>4.89×</strong><br/><br/>
+              D is valid: CCM/TCM and VBC layers require operational investment beyond the NEMT trip cost. Attribution transparency is essential. Present three scenarios: conservative (FFS + coding = $91,500), base (+ TCM = $110,467), optimistic (all layers = $172,123).
+            </div>
+          </div>
+          <button class="reveal-btn" onclick="toggleReveal('pred_reveal_5')">Reveal Answer &amp; Board Framing</button>
+        </div>
+
+        <div class="ex-section ex-reflection">
+          <div class="ex-section-label">🪞 Learner Reflection</div>
+          <ul class="ex-list">
+            <li>The board skeptic: "What's the downside case if mitigation rate drops to 30% and VBC earn-back doesn't materialize?" Build that scenario.</li>
+            <li>A board member with banking experience: "How does the CRA structure benefit us beyond the $50,000?" What are the non-financial benefits?</li>
+            <li>Your CMO: "What's the patient experience case independent of the financial model?" How do you answer?</li>
+            <li>After pilot success, the board wants to scale. Name the top three operational risks and how you'd mitigate them.</li>
+          </ul>
+          <textarea class="ref-textarea" placeholder="Enter your final synthesis notes..." id="ref_5" rows="5"></textarea>
+        </div>
+
+        <div class="ex-section ex-expert">
+          <div class="ex-section-label">🏛️ Expert Analysis</div>
+          <div class="expert-content">
+            <p><strong>Present with attribution discipline, not optimism.</strong> $172K in total value against $79K in program cost is strong on paper. But a board that approves expecting $172K and receives $82K (FFS only) will feel misled. Present three scenarios explicitly: conservative, base, and optimistic.</p>
+            <p><strong>Downside scenario (30% mitigation):</strong> Prevented = 720 visits | Net FFS = 720 × ($225−$90) − 720 × $66 = $97,200 − $47,520 = <strong>$49,680</strong>. The program is still profitable at the FFS level in the downside case. The $135/trip break-even provides substantial headroom above the $60 trip cost.</p>
+            <p><strong>CRA partnership value beyond dollars:</strong> (1) Subsidized program cost; (2) credibility with community stakeholders and regulators; (3) potential for multi-year commitment enabling scaling; (4) joint community engagement supporting CHNA requirements; (5) a regulatory record citable in IRS Schedule H community benefit documentation.</p>
+            <p><strong>The patient experience case:</strong> For a patient managing Type 2 diabetes, hypertension, and limited income, a missed appointment is not an inconvenience — it is a gap in chronic disease management that compounds over months and years. NEMT restores their agency to access care they need. That equity dimension is the moral foundation of the program and should precede the financial case in every board presentation.</p>
+            <p><strong>Top three scaling risks:</strong> (1) Vendor operational quality — on-time pickup rates deteriorate at scale without strong SLA enforcement; (2) Eligibility drift — LMI and AA verification weakens at scale, creating CRA/Schedule H audit exposure; (3) Documentation burden — service logs and beneficiary data must scale with program volume, requiring EHR integration.</p>
+          </div>
+        </div>
+
+        <!-- Module Summary -->
+        <div class="ex-section" style="background:linear-gradient(135deg, rgba(13,148,136,.05), rgba(37,99,235,.05)); border:1px solid var(--teal-border); border-radius:var(--radius); padding:20px; margin-top:20px;">
+          <div class="ex-section-label">🏁 Module Complete</div>
+          <p style="font-size:15px; color:var(--navy); font-weight:700; margin-bottom:8px;">You have completed the NEMT ROI &amp; Healthcare Benefits Executive Training Module.</p>
+          <p style="color:var(--muted); font-size:14px;">Across five exercises you built a complete understanding of NEMT's value case — from FFS contribution margin through coding documentation, care management billing, and value-based quality earn-back — alongside the attribution, compliance, and operational discipline required to realize it in practice.</p>
+          <div class="kpis" style="margin-top:16px;">
+            <div class="kpi"><div class="label">FFS Layer</div><div class="value" style="font-size:18px;">$82,800</div><div class="hint">High confidence base</div></div>
+            <div class="kpi"><div class="label">Coding Layer</div><div class="value" style="font-size:18px;">$8,700</div><div class="hint">Medium confidence add-on</div></div>
+            <div class="kpi" style="border-color:var(--blue-border); background:var(--blue-soft);"><div class="label" style="color:var(--blue);">CCM/TCM Layers</div><div class="value" style="font-size:18px; color:var(--blue);">~$45,600</div><div class="hint">Requires ops infrastructure</div></div>
+            <div class="kpi" style="border-color:var(--green-border); background:var(--green-soft);"><div class="label" style="color:var(--green);">VBC Quality</div><div class="value" style="font-size:18px; color:var(--green);">$35,000</div><div class="hint">Attribution-dependent</div></div>
+          </div>
+          <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="primary" onclick="setView('t3')">→ Open ROI Calculator</button>
+            <button class="secondary" onclick="setView('t4')">→ Build Implementation Plan</button>
+            <button onclick="window.print()">🖨️ Print Module</button>
+          </div>
+        </div>
+
+        <div class="ex-nav-footer">
+          <button onclick="showExercise(4)">← Previous Exercise</button>
+        </div>
+      </div>
+
+      <!-- Citation accordion -->
+      <div style="margin-top:24px; border-top:1px solid var(--border); padding-top:20px;">
+        <button onclick="var d=this.nextElementSibling; d.style.display=d.style.display==='none'?'block':'none';" style="font-weight:700; color:var(--navy); background:var(--bg-warm); width:100%; text-align:left;">📚 Evidence &amp; Policy Citations ▾</button>
+        <div style="display:none; margin-top:12px;" class="small">
+          <div style="display:grid; gap:8px;">
+            <div class="callout"><strong>CMS MLN — Chronic Care Management Services</strong> | cms.gov/files/document/chroniccaremanagement.pdf | Official CMS guidance on CCM billing requirements, eligible codes, and compliance.</div>
+            <div class="callout"><strong>CMS MLN — Transitional Care Management Services</strong> | cms.gov/files/document/mln908628-transitional-care-management-services.pdf | Official TCM: 2-day contact, 7/14-day visit windows, and med rec requirements.</div>
+            <div class="callout"><strong>CMS VBID Transportation Use Case (CY2023)</strong> | cms.gov/priorities/innovation/media/document/vbid-cy2023-transportation-use-case | CMS framing of transportation as a chronic disease management enablement strategy.</div>
+            <div class="callout"><strong>ACO REACH PY 2026 Quality Withhold Methodology</strong> | cms.gov/priorities/innovation/aco-reach-model-performance-year-2026-model-update-quick-reference | CMS earn-back mechanics and quality withhold structure.</div>
+            <div class="callout"><strong>NEMT Systematic Meta-Analysis</strong> | pmc.ncbi.nlm.nih.gov/articles/PMC9026972/ | Pooled evidence: transportation interventions associated with fewer missed appointments.</div>
+            <div class="callout"><strong>Chaiyachati et al. (2018)</strong> | gwern.net/doc/sociology/technology/2018-chaiyachati.pdf | Pragmatic rideshare RCT; no significant improvement due to low uptake—key nuance for program design.</div>
+            <div class="callout"><strong>QPP Measure 001 — Diabetes Glycemic Status &gt;9%</strong> | qpp.cms.gov | HbA1c/GMI classification requirement; missed visits increase "missing/not performed" risk.</div>
+            <div class="callout"><strong>QPP Measure 113 — Colorectal Cancer Screening</strong> | qpp.cms.gov | Annual screening measure; missed PCP touchpoints reduce capture and closure.</div>
+            <div class="callout"><strong>CMS 2026 Star Ratings Technical Notes</strong> | cms.gov/files/document/2026-star-ratings-technical-notes.pdf | Transitions of care / medication reconciliation measure methodology.</div>
+            <div class="callout"><strong>OIG Safe Harbor — Transportation (2016)</strong> | federalregister.gov | Compliance guardrails for provider-arranged transportation; fact-specific application required.</div>
+            <div class="callout"><strong>AMA CPT Licensing FAQ</strong> | ama-assn.org/practice-management/cpt | AMA holds CPT copyright; licensing required for platform display of CPT descriptors.</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

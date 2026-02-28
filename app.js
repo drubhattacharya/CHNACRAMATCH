@@ -848,6 +848,10 @@ function setView(view){
   const tabEl = document.getElementById("tab_"+view);
   if(tabEl) tabEl.classList.add("active");
 
+  // Training module is full-width; hide the main 2-col grid when on training tab
+  const grid = document.querySelector(".grid.grid-2");
+  if(grid) grid.style.display = (view === "training") ? "none" : "";
+
   // Chart.js canvases can render at 0px when hidden; force a resize on tab switch.
   window.setTimeout(()=>{
     try{ if(chartMateriality) chartMateriality.resize(); }catch(e){}
@@ -1641,6 +1645,72 @@ ${notes ? "- Notes: " + notes : ""}`.trim();
   return {uplift, detail};
 }
 
+function ccm_tcm_calc(){
+  const enabled = document.getElementById("toggle_ccm")?.checked;
+  if(!enabled) return {ccm_net:0, tcm_net:0, detail:"CCM/TCM layer not enabled.", enabled:false};
+
+  // CCM
+  const ccm_patients = parseFloat(document.getElementById("ccm_patients")?.value)||0;
+  const ccm_enroll = _normRate(parseFloat(document.getElementById("ccm_enroll")?.value)||0);
+  const ccm_months = parseFloat(document.getElementById("ccm_months")?.value)||0;
+  const ccm_allowed = parseFloat(document.getElementById("ccm_allowed")?.value)||0;
+  const ccm_success = _normRate(parseFloat(document.getElementById("ccm_success")?.value)||0);
+  const ccm_staff_rate = parseFloat(document.getElementById("ccm_staff_rate")?.value)||0;
+  const ccm_minutes = parseFloat(document.getElementById("ccm_minutes")?.value)||0;
+
+  const ccm_enrolled = ccm_patients * ccm_enroll;
+  const ccm_billed_months = ccm_enrolled * ccm_months * ccm_success;
+  const ccm_gross = ccm_billed_months * ccm_allowed;
+  const ccm_labor = ccm_billed_months * ccm_minutes * ccm_staff_rate;
+  const ccm_net = ccm_gross - ccm_labor;
+
+  // TCM
+  const tcm_discharges = parseFloat(document.getElementById("tcm_discharges")?.value)||0;
+  const tcm_reach = _normRate(parseFloat(document.getElementById("tcm_reach")?.value)||0);
+  const tcm_high_share = _normRate(parseFloat(document.getElementById("tcm_high_share")?.value)||0);
+  const tcm_allow_mod = parseFloat(document.getElementById("tcm_allow_mod")?.value)||0;
+  const tcm_allow_high = parseFloat(document.getElementById("tcm_allow_high")?.value)||0;
+  const tcm_success = _normRate(parseFloat(document.getElementById("tcm_success")?.value)||0);
+  const tcm_minutes = parseFloat(document.getElementById("tcm_minutes")?.value)||0;
+  const tcm_staff_rate = parseFloat(document.getElementById("tcm_staff_rate")?.value)||0;
+
+  const tcm_episodes = tcm_discharges * tcm_reach * tcm_success;
+  const tcm_avg_allowed = tcm_high_share * tcm_allow_high + (1-tcm_high_share) * tcm_allow_mod;
+  const tcm_gross = tcm_episodes * tcm_avg_allowed;
+  const tcm_labor = tcm_episodes * tcm_minutes * tcm_staff_rate;
+  const tcm_net = tcm_gross - tcm_labor;
+
+  const detail = `CCM:\n- Enrolled: ${Math.round(ccm_enrolled).toLocaleString()} patients\n- Billed patient-months: ${Math.round(ccm_billed_months).toLocaleString()}\n- Gross revenue: ${fmtMoney(ccm_gross)} | Labor: ${fmtMoney(ccm_labor)}\n- Net CCM contribution: ${fmtMoney(ccm_net)}\n\nTCM:\n- Billable episodes: ${Math.round(tcm_episodes).toLocaleString()}\n- Avg allowed: $${tcm_avg_allowed.toFixed(0)}\n- Gross revenue: ${fmtMoney(tcm_gross)} | Labor: ${fmtMoney(tcm_labor)}\n- Net TCM contribution: ${fmtMoney(tcm_net)}\n\n⚠️ CCM/TCM time must be real, threshold-meeting, and non-duplicative. Consult compliance before operationalizing.`;
+  return {ccm_net, tcm_net, ccm_gross, tcm_gross, ccm_labor, tcm_labor, ccm_enrolled, ccm_billed_months, tcm_episodes, detail, enabled:true};
+}
+
+function vbc_calc(){
+  const enabled = document.getElementById("toggle_vbc")?.checked;
+  if(!enabled) return {earn:0, detail:"VBC Quality layer not enabled.", enabled:false};
+
+  const vbc_type = document.getElementById("vbc_type")?.value || "earnback";
+  const at_risk = parseFloat(document.getElementById("vbc_at_risk")?.value)||0;
+  const baseline = parseFloat(document.getElementById("vbc_baseline")?.value)||0;
+  const projected = parseFloat(document.getElementById("vbc_projected")?.value)||0;
+
+  let earn = 0;
+  let detail = "";
+
+  if(vbc_type === "earnback"){
+    const delta = Math.max(0, projected - baseline);
+    earn = (delta / 100) * at_risk;
+    detail = `Linear earn-back model:\n- At-risk pool: ${fmtMoney(at_risk)}\n- Baseline score: ${baseline}\n- Projected score: ${projected}\n- Delta: +${delta} points\n- Incremental earn-back: ${fmtMoney(earn)}\n\nAffected measures: Diabetes Glycemic Status (QPP 001), Controlling High Blood Pressure (236), Colorectal Screening (113), Transitions of Care / Med Rec (Star Ratings).`;
+  } else {
+    const threshold = parseFloat(document.getElementById("vbc_threshold")?.value)||0;
+    const bonus = parseFloat(document.getElementById("vbc_bonus")?.value)||0;
+    const clears = projected >= threshold;
+    const baseClears = baseline >= threshold;
+    earn = clears && !baseClears ? bonus : 0;
+    detail = `Cliff/threshold bonus model:\n- Threshold: ${threshold} | Bonus: ${fmtMoney(bonus)}\n- Baseline ${baseline} ${baseClears?"CLEARS":"misses"} threshold\n- Projected ${projected} ${clears?"CLEARS":"misses"} threshold\n- Incremental earn: ${fmtMoney(earn)}\n${!clears?"Note: Projected score does not reach threshold. Consider interventions to close remaining gap.":""}`;
+  }
+  return {earn, detail, enabled:true};
+}
+
 function render_roi(){
   const inp = roi_inputs();
   const out = roi_calc(inp);
@@ -1660,20 +1730,60 @@ function render_roi(){
   const roiTotal = (out.total_program_cost===0) ? 0 : (totalNet / out.total_program_cost);
   document.getElementById("o_roi").textContent = (out.total_program_cost===0) ? "—" : roiTotal.toFixed(2) + "x";
 
-  // Chart
-  const ctx = document.getElementById("roi_bar");
-  if(ctx){
-    new Chart(ctx, {
+  // CCM/TCM Layer
+  const cct = ccm_tcm_calc();
+  document.getElementById("o_ccm_net").textContent = cct.enabled ? fmtMoney(cct.ccm_net) : "—";
+  document.getElementById("o_tcm_net").textContent = cct.enabled ? fmtMoney(cct.tcm_net) : "—";
+
+  // VBC Layer
+  const vbc = vbc_calc();
+  document.getElementById("o_vbc_earn").textContent = vbc.enabled ? fmtMoney(vbc.earn) : "—";
+
+  // All-in
+  const allin = totalNet + (cct.enabled ? cct.ccm_net + cct.tcm_net : 0) + (vbc.enabled ? vbc.earn : 0);
+  document.getElementById("o_allin").textContent = fmtMoney(allin);
+
+  // Waterfall chart
+  const wfCtx = document.getElementById("roi_waterfall");
+  if(wfCtx){
+    if(wfCtx._chart){ wfCtx._chart.destroy(); }
+    wfCtx._chart = new Chart(wfCtx, {
       type:"bar",
       data:{
-        labels:["Gross revenue recaptured","Marginal clinical cost","Total program cost","Base net benefit","Coding uplift","Net incl. coding"],
-        datasets:[{data:[out.gross_rev,out.marginal_cost,out.total_program_cost,out.net_benefit,cu.uplift,totalNet]}]
+        labels:["Gross Revenue\nRecaptured","Marginal\nClinical Cost","Program\nCost","FFS Net\nBenefit","Coding\nUplift","CCM\nNet","TCM\nNet","VBC\nEarn-back","All-in\nValue"],
+        datasets:[{
+          data:[out.gross_rev, -out.marginal_cost, -out.total_program_cost, out.net_benefit, cu.uplift, cct.enabled?cct.ccm_net:0, cct.enabled?cct.tcm_net:0, vbc.enabled?vbc.earn:0, allin],
+          backgroundColor:["#14b8a6","#ef4444","#ef4444","#0f2b46","#64748b","#2563eb","#3b82f6","#059669","#0d9488"],
+          borderRadius:6,
+          borderSkipped:false
+        }]
       },
-      options:{plugins:{legend:{display:false}}}
+      options:{
+        plugins:{legend:{display:false}},
+        scales:{y:{ticks:{callback:(v)=>"$"+Math.round(v/1000)+"K"}}},
+        responsive:true
+      }
     });
   }
 
-  // CRA outputs (unchanged)
+  // Value stack bar chart
+  const ctx = document.getElementById("roi_bar");
+  if(ctx){
+    if(ctx._chart){ ctx._chart.destroy(); }
+    const labels = ["FFS Base"];
+    const vals = [out.net_benefit];
+    const colors = ["#0f2b46"];
+    if(cu.uplift>0){ labels.push("+ Coding"); vals.push(cu.uplift); colors.push("#64748b"); }
+    if(cct.enabled){ labels.push("+ CCM"); vals.push(cct.ccm_net); colors.push("#2563eb"); labels.push("+ TCM"); vals.push(cct.tcm_net); colors.push("#3b82f6"); }
+    if(vbc.enabled){ labels.push("+ VBC"); vals.push(vbc.earn); colors.push("#059669"); }
+    ctx._chart = new Chart(ctx, {
+      type:"bar",
+      data:{labels, datasets:[{data:vals, backgroundColor:colors, borderRadius:6}]},
+      options:{plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:(v)=>"$"+Math.round(v/1000)+"K"}}}, responsive:true}
+    });
+  }
+
+  // CRA outputs
   const craTxt =
 `Trips delivered (round trips): ${Math.round(out.trips).toLocaleString()}
 LMI trips: ${Math.round(out.lmi_trips).toLocaleString()}
@@ -1687,9 +1797,21 @@ Narrative-ready summary:
 ${out.narrative}`;
   document.getElementById("cra_box").textContent = craTxt;
 
+  // Extended layers detail
+  const extBox = document.getElementById("extended_layers_box");
+  if(extBox){
+    let extTxt = "";
+    if(cct.enabled) extTxt += cct.detail + "\n\n";
+    else extTxt += "CCM/TCM Layer: not enabled.\n\n";
+    if(vbc.enabled) extTxt += vbc.detail + "\n\n";
+    else extTxt += "VBC Quality Layer: not enabled.\n\n";
+    extTxt += `All-in Value Summary:\n- FFS base net: ${fmtMoney(out.net_benefit)}\n- Coding uplift: ${fmtMoney(cu.uplift)}\n- CCM net: ${cct.enabled ? fmtMoney(cct.ccm_net) : "—"}\n- TCM net: ${cct.enabled ? fmtMoney(cct.tcm_net) : "—"}\n- VBC earn-back: ${vbc.enabled ? fmtMoney(vbc.earn) : "—"}\n- All-in value: ${fmtMoney(allin)}`;
+    extBox.textContent = extTxt;
+  }
+
   // Audit memo
   document.getElementById("roi_audit").textContent =
-`Tier 3 — Excel-parity ROI + Coding ROI Layer
+`Tier 3 — Excel-parity ROI + Optional Layers
 
 Base ROI (Excel parity):
 - Net benefit: $${out.net_benefit.toFixed(0)}
@@ -1699,13 +1821,19 @@ Base ROI (Excel parity):
 Coding ROI Layer:
 ${cu.detail}
 
-Total net (incl. coding): $${totalNet.toFixed(0)}
+CCM/TCM Layer:
+${cct.detail}
+
+VBC Quality Layer:
+${vbc.detail}
+
+All-in net (all enabled layers): ${fmtMoney(allin)}
 ROI incl. coding: ${out.total_program_cost===0 ? "—" : roiTotal.toFixed(2)+"x"}
 
 Generated: ${new Date().toISOString()}`;
 
   // persist for draft generator
-  state.model = { roi_parity:true, inputs: inp, outputs: out, coding: cu, totalNet, roiTotal };
+  state.model = { roi_parity:true, inputs: inp, outputs: out, coding: cu, totalNet, roiTotal, ccm_tcm: cct, vbc, allin };
 }
 
 
@@ -1732,6 +1860,31 @@ Generated: ${new Date().toISOString()}`;
       const el = document.getElementById(id);
       if(el) el.addEventListener("change", ()=>{ if(typeof render_roi === "function") render_roi(); });
       if(el) el.addEventListener("input", ()=>{ if(typeof render_roi === "function") render_roi(); });
+    });
+  }
+})();
+
+// CCM/TCM toggle
+(function(){
+  const t = document.getElementById("toggle_ccm");
+  const box = document.getElementById("ccm_box");
+  if(t && box){
+    t.addEventListener("change", ()=>{ box.style.display = t.checked ? "block" : "none"; });
+  }
+})();
+
+// VBC toggle
+(function(){
+  const t = document.getElementById("toggle_vbc");
+  const box = document.getElementById("vbc_box");
+  const cliff = document.getElementById("vbc_cliff_row");
+  if(t && box){
+    t.addEventListener("change", ()=>{ box.style.display = t.checked ? "block" : "none"; });
+  }
+  const typeEl = document.getElementById("vbc_type");
+  if(typeEl && cliff){
+    typeEl.addEventListener("change", ()=>{
+      cliff.style.display = typeEl.value === "cliff" ? "flex" : "none";
     });
   }
 })();
@@ -1841,4 +1994,51 @@ Evaluate whether the intervention reduces transport-related missed appointments 
 `;
   document.getElementById("eval_plan").textContent = txt;
 };
+
+
+// ------------------------------
+// Training Module JS
+// ------------------------------
+window.showExercise = function(n){
+  document.querySelectorAll(".training-exercise").forEach(el=>el.classList.remove("active"));
+  const ex = document.getElementById("ex_"+n);
+  if(ex){ ex.classList.add("active"); ex.scrollIntoView({behavior:"smooth", block:"start"}); }
+  document.querySelectorAll(".ex-nav-btn").forEach(btn=>{
+    btn.classList.toggle("active", parseInt(btn.dataset.ex)===n);
+  });
+};
+
+window.selectPred = function(exNum, choice){
+  const container = document.getElementById("pred_"+exNum);
+  if(!container) return;
+  container.querySelectorAll(".pred-option").forEach((el,i)=>{
+    const letters = "abcd";
+    el.classList.remove("selected","correct","incorrect");
+    if(letters[i]===choice) el.classList.add("selected");
+  });
+};
+
+window.toggleReveal = function(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const showing = el.style.display !== "none";
+  el.style.display = showing ? "none" : "block";
+  // Mark options correct/incorrect when revealed
+  const m = id.match(/pred_reveal_(\d+)/);
+  if(!m || showing) return;
+  const exNum = m[1];
+  const correctMap = {"1":"b","2":"b","3":"c","4":"b","5":"c"};
+  const correct = correctMap[exNum];
+  const container = document.getElementById("pred_"+exNum);
+  if(!container || !correct) return;
+  const letters = "abcd";
+  container.querySelectorAll(".pred-option").forEach((el,i)=>{
+    if(letters[i]===correct){ el.classList.add("correct"); el.classList.remove("selected","incorrect"); }
+    else if(el.classList.contains("selected")){ el.classList.add("incorrect"); el.classList.remove("selected"); }
+  });
+};
+
+
+// Handle training tab click via existing tab wire-up (data-view="training" already wired above)
+// showExercise, selectPred, toggleReveal are globally defined above
 
